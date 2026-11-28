@@ -70,7 +70,7 @@ Sintomi in quasi tutti i giochi: **scatto brutto** all'entrata, poi la domanda *
 1. **Causa probabile: cambi di layout dopo la comparsa** (la card cambia dimensione quando entrano le opzioni, il componente si rimonta, i font/immagini arrivano dopo). Verificalo con `PerformanceObserver('layout-shift')` e `longtask`.
 2. Regole: layout **finale riservato prima** dell'animazione; animare solo `transform`/`opacity`; nessun rimontaggio del componente durante la scena; **precarica e decodifica** font e immagini prima di mostrarli; niente `backdrop-filter`/`filter` su elementi grandi; promuovi a livello compositing **prima** dell'inizio.
 3. Un solo componente **`FeedbackCard`** (corretto/sbagliato/esito) per tutta l'app, con entrata fluida a scala+dissolvenza e un breve respiro.
-4. **Criterio di fine, misurabile:** per ogni gioco con `#ENTR` (Quiz, Indovina chi, Timeline, Ruota, Time Buzzer, Bomba, Speed Rush, Azzardo, Ultima spiaggia, Biglie, Cavallo): **layout shift = 0** durante l'entrata e **nessun frame oltre 50 ms** a 1280×720 con CPU 4×. Tabella prima/dopo (`frame-budget.mjs` esteso a tutti i giochi).
+4. **Criterio di fine, misurabile:** per ogni gioco con `#ENTR` (Quiz, Indovina chi, Timeline, Ruota, Time Buzzer, Bomba, Speed Rush, Azzardo, Ultima spiaggia, Biglie, Cavallo): **layout shift = 0** durante l'entrata e **nessun frame oltre 50 ms** a 1280×720 con CPU 4× (budget **N-10b**). Tabella prima/dopo (`frame-budget.mjs` esteso a tutti i giochi).
 5. Un commit per causa e uno per gioco dove serve.
 
 ### N-11 Riepiloghi dei giochi: componente unico

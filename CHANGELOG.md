@@ -1,5 +1,38 @@
 # Changelog
 
+## 28 novembre 2026 — Sette e Mezzo, carte napoletane e dissolvenze
+
+Il bonus dell'atto 2 passa dal Blackjack al **Sette e Mezzo**; le carte della
+TV sono napoletane a colori, con dorso a inchiostro. Nessuna release e nessun
+tag: la build è pronta, manca la prova in sala.
+
+- **Sette e Mezzo.** Tavolo 1v1 al banco a 7,25, prima carta coperta, telefono
+  con CARTA/STAI; il Blackjack resta nel codice ma fuori dal flusso. Preview
+  `/bonus-preview/sette?capture`, screenshot `screenshot-sette-table-2.png`.
+- **Carte.** 40 facce CC0 da `SONDLecT/woodcut-napoletane/colori/` e dorso
+  `cards/dorso.svg`, con `LICENZE.md` file-per-file e script
+  `scripts/carte/scarica-napoletane.mjs --check` (41 file OK). Bordi **4 px** in
+  TV, **3 px** sul telefono. Commit `9cccd5f3`.
+- **Dissolvenze.** Entrate, conferme ed errori usano solo opacità: `m-pop` è una
+  dissolvenza, `--ease-spring`, `m-bump` e `m-shake` sono stati rimossi, il
+  reveal di Musica non rimbalza più. Restano i movimenti fisici (timer, ruota,
+  palline, respiro dischi, ingresso scenografico del bonus).
+- **Preload.** `preloadSetteCards(cards)` scarica il dorso più le carte della
+  mano corrente; il Blackjack le precarica in `ngOnChanges`. Il bonus non
+  trascina più 41 SVG (9,7 MB) prima della prima carta.
+- **N-10.** Chiuso sul layout: CLS 0 e shift 0 in tutte le misure. Il budget
+  frame resta **N-10b** (`framesOver50 === 0` in `e2e/ingressi.spec.ts`,
+  100 ms/1 in isolamento, 433 ms/27 nel flusso reale).
+- **Verifiche.** Build frontend e test mirati da rilanciare dopo l'ultima
+  modifica; i 237 test/11 file precedenti coprono stage, Quiz, Musica, Arena,
+  Tennis, Azzardo, leaderboard e bonus Sette. Audit design con 66 advisory
+  legacy, nessun blocco.
+- **Documenti.** README, descrizione, presentazione, manuale telefono, punteggi,
+  roadmap e questo changelog allineati a Sette e Mezzo, Arena ±10 senza
+  piazzamento e Musica 4 round × 5 manche (4 s / 12 s, +200/+100/−50).
+
+# Changelog
+
 ## 27 novembre 2026 — Musica, tic del timer e Karaoke in lobby
 
 Correzioni della seconda serata senza cambiare le regole di punteggio: la

@@ -61,9 +61,11 @@ export function allCardImages(): string[] {
  * tiene nella cache: la prima mano non aspetta la rete e non cambia layout
  * quando arrivano le carte.
  */
-export function preloadSetteCards(): void {
+export function preloadSetteCards(cards: readonly string[] = []): void {
   if (typeof Image === 'undefined') return;
-  for (const src of allCardImages()) {
+  const sources = new Set<string>([CARTE_DORSO]);
+  for (const card of cards) sources.add(cardImage(card));
+  for (const src of sources) {
     const image = new Image();
     image.decoding = 'async';
     image.src = src;

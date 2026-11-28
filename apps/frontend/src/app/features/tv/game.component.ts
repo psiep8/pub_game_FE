@@ -2938,8 +2938,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.bonusGuardReason.set('libero');
     this.lastBonusAction.set(`START ${type}`);
     console.info('[BONUS] startBonus', { type, gameId: this.currentGameId() });
-    // Le 41 carte si scaricano durante l'ingresso: la prima mano non aspetta
-    // la rete e non cambia layout quando arrivano i disegni.
+    // Il dorso si scarica durante l'ingresso; le facce arrivano con la mano
+    // vera, così il bonus non trascina 41 SVG prima della prima carta.
     if (type === 'SETTE_E_MEZZO') preloadSetteCards();
     this.bonusResume.set(resume);
     // Il bonus dell'atto resta sul server: un refresh non lo salta.

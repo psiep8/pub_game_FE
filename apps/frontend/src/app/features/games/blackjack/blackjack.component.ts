@@ -1,11 +1,12 @@
 import { BlackjackPhase } from './blackjack.mode';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { isBust as isSetteBust, isMatta } from '../sette-e-mezzo/sette-e-mezzo-rules';
 import {
   CARTE_DORSO,
   cardAlt as napoletanaCardAlt,
   cardImage as napoletanaCardImage,
+  preloadSetteCards,
 } from '../sette-e-mezzo/carte-napoletane';
 
 /**
@@ -229,12 +230,20 @@ import {
     @keyframes bj-pulse { 50% { transform: scale(1.08); opacity: .7; } }
   `],
 })
-export class Blackjack {
+export class Blackjack implements OnChanges {
   /** Fasi del gioco, disponibili anche nel template. */
   readonly BlackjackPhase = BlackjackPhase;
 
   @Input() displayData: any;
   @Input() timer = 0;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['displayData'] || this.displayData?.type !== 'SETTE_E_MEZZO') return;
+    preloadSetteCards([
+      ...(this.displayData?.cards ?? []),
+      ...(this.displayData?.bank?.cards ?? []),
+    ]);
+  }
 
   /** Il Sette e Mezzo usa i disegni napoletani al posto dei simboli francesi. */
   isSette(): boolean {

@@ -66,7 +66,7 @@ presentatore per sapere che ogni telefono è pronto.
 | **Ultima spiaggia** | Scegli il livello (100–500), poi rispondi alla domanda. |
 | **Biglie** | Scegli la tua biglia: una scelta sola, vale per le due gare del round. |
 | **Bonus Casino 5 manche** | Tocca la casella della manche: colore, dozzina, parità, alto/basso o numero secco. |
-| **Bonus Blackjack** | Al tuo turno: **CARTA** o **STAI** contro il banco. |
+| **Bonus Sette e Mezzo** | Al tuo turno: **CARTA** o **STAI** contro il banco a 7,25; la prima carta resta coperta. |
 | **Bonus Cavallo** | Scegli la categoria, poi rispondi alle otto domande flash. |
 
 ---

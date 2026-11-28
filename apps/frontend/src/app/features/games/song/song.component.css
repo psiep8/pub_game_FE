@@ -528,7 +528,7 @@
   box-shadow: 12px 12px 0 var(--tomato);
   text-align: center;
   overflow: auto;
-  animation: m-pop var(--motion-base) var(--ease-spring) backwards;
+  animation: m-pop var(--motion-base) var(--ease-out) backwards;
 }
 
 .reveal-stamp {

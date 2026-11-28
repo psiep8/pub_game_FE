@@ -1,6 +1,6 @@
 # quizzOne — descrizione del gioco
 
-> **VERSIONE 2.3 — 19 novembre 2026.**
+> **VERSIONE 3.1.1 — 28 novembre 2026.**
 > Se una regola non combacia col codice, vince il codice. Per la serata fanno fede
 > `README.md` e `docs/manuale-serata.html/PDF`.
 
@@ -40,7 +40,7 @@ browser dal QR in TV.
 
 Conteggi: **5 Quiz, 4 Musica, 4 Biglie, 3 Speed Rush, 3 Time Buzzer, 3 Indovina chi,
 3 Timeline, 2 Azzardo, 2 Arena, 2 Bomba, 2 Tennis, 2 Ruota, 5 Ultima spiaggia.**
-Blackjack non è più un round. Arena chiude gli atti 3 e 5; Ultima spiaggia è ai round
+Il Blackjack è sostituito dal Sette e Mezzo: non è un round, è il bonus dell'atto 2. Arena chiude gli atti 3 e 5; Ultima spiaggia è ai round
 8, 16, 23, 32 e 39.
 
 ---
@@ -48,7 +48,7 @@ Blackjack non è più un round. Arena chiude gli atti 3 e 5; Ultima spiaggia è 
 ## 3. Giochi di round
 
 - **Quiz** — tre manche a scelta multipla; il tempo rimasto decide il valore.
-- **Musica** — quattro ascolti; prenotazione e risposta a voce.
+- **Musica** — quattro round da cinque manche, due ascolti (4 s e 12 s) per brano; prenotazione e risposta a voce; +200 alla prima, +100 alla seconda, errore 0 / −50.
 - **Indovina chi** — foto sfocata che si schiarisce; prenotazione e risposta a voce.
 - **Ruota della fortuna** — proverbio con lettere coperte; prenotazione.
 - **Timeline** — carte da ordinare; il server conserva la soluzione.
@@ -58,7 +58,7 @@ Blackjack non è più un round. Arena chiude gli atti 3 e 5; Ultima spiaggia è 
 - **Tennis Battle** — duello a coppie con punteggio 15/30/40 e killer point diretto sul 40-40, senza vantaggi; tre round in serata.
 - **Azzardo** — quattro manche numeriche con fiches e quote; 30 s per la puntata e 7 s per il reveal.
 - **Ultima spiaggia** — cinque livelli 100–500, consumabili una volta per squadra.
-- **Arena** — Vero/Falso continuo dentro un cerchio che si stringe.
+- **Arena** — Vero/Falso continuo dentro un cerchio che si stringe; +10 / −10 per risposta, senza piazzamento.
 - **Biglie** — quattro round da **due gare** (otto gare in serata) su due delle otto piste:
   rally (terra), F1 (asfalto), neve, acqua, **vetro**, sabbia, spazio e magma. La coppia di
   piste la sceglie il seme del round; una biglia per tavolo, scelta una volta sola. Ogni
@@ -80,7 +80,7 @@ accreditati **una sola volta, alla chiusura**.
 | Atto | Bonus | Come funziona | Punti |
 | --- | --- | --- | --- |
 | 1 | **Karaoke** | Cinque canzoni, clip che si ferma a fine riga, microfono al primo tavolo che prenota | +100 / +150 / +200 / +250 / +300 per manche (max +1500); sbagliare non toglie punti |
-| 2 | **Blackjack** | Un turno per tavolo, 15 s, banco a 17 | premio del bar, non punti |
+| 2 | **Sette e Mezzo** | Bonus 1v1 al banco a 7,25: 15 s per tavolo, carta o stai; la prima carta è coperta | premio del bar, non punti |
 | 3 | **Casino 5 manche** | Cinque manche, una girata ciascuna: colore, dozzina, parità, alto/basso e numero secco; scelta in 10 s | +100 / +200 / +100 / +100 / +1000 (max +1500); sullo zero incassa il banco |
 | 4 | **Cavallo di battaglia** | Categoria votata, otto domande flash | premio del bar, non punti |
 | 5 | **Casino numero secco** | Un numero da 0 a 36 scelto una volta, poi tre girate | +1000 se il numero esce, una volta sola (max +1000) |
@@ -105,7 +105,7 @@ la classifica finale.
 
 - **PROSSIMO ROUND**, **MOSTRA CLASSIFICA**, **PAUSA / RIPRENDI**.
 - **DEMO** per spiegare un gioco, **CHIUDI DEMO** per tornare alla partita.
-- Bonus dell'atto: **Karaoke**, **Blackjack**, **Casino 5 manche**, **Cavallo**,
+- Bonus dell'atto: **Karaoke**, **Sette e Mezzo**, **Casino 5 manche**, **Cavallo**,
   **Casino numero secco**; partono da soli nel round dello slot, **CHIUDI BONUS** per
   uscire prima.
 - **PARTITA #** per comandare la TV da un altro dispositivo.

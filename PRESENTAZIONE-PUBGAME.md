@@ -1,6 +1,6 @@
 # PUBGAME — Il copione del presentatore
 
-> **VERSIONE 3.1.1 — 25 novembre 2026.**
+> **VERSIONE 3.1.1 — 28 novembre 2026.**
 > Il copione descrive la serata alla seconda major. Per i pulsanti del pannello admin
 > vedi `docs/PANNELLO-ADMIN.md`; per il telefono delle squadre vedi `docs/MANUALE-TELEFONO.md`.
 > Se un gioco o un punteggio cambia, questo file va riallineato.
@@ -88,7 +88,7 @@ Bonus, uno dentro ognuno dei cinque atti:
 | Atto | Bonus | Punti |
 | --- | --- | --- |
 | 1 | 🎤 Karaoke | +100 / +150 / +200 / +250 / +300 per manche; sbagliare non toglie punti |
-| 2 | 🃏 Blackjack | premio del bar, non punti |
+| 2 | 🃏 Sette e Mezzo | premio del bar, non punti |
 | 3 | 🎰 Casino 5 manche | +100 / +200 / +100 / +100 / +1000; massimo +1500 |
 | 4 | 🐎 Cavallo di Battaglia | premio del bar, non punti |
 | 5 | 🎯 Casino numero secco | +1000 se il numero esce, una volta sola |
@@ -193,10 +193,10 @@ Non consumano un round: la TV li apre da sola in **un round interno dell'atto**,
 - Punti per manche: **+100 / +150 / +200 / +250 / +300**.
 - *Da dire:* «Il microfono è uno: chi prenota per primo canta, gli altri ascoltano.»
 
-### 🃏 Blackjack — nell'atto 2
-- Un turno per tavolo, dal fondo della classifica: **15 secondi**, CARTA o STAI.
-- Il banco si ferma a **17**. Chi lo batte riceve il **premio concordato con il bar**, non punti; premio e consegna li gestiscono barista e presentatore.
-- *Da dire:* «Il banco non aspetta: fermatevi prima di sballare.»
+### 🃏 Sette e Mezzo — nell'atto 2
+- Bonus 1v1 al banco a **7,25**: un turno per tavolo, dal fondo della classifica, **15 secondi**, CARTA o STAI.
+- La prima carta della squadra resta coperta e la vede solo il telefono. Chi batte il banco riceve il **premio concordato con il bar**, non punti; premio e consegna li gestiscono barista e presentatore.
+- *Da dire:* «Il banco sta a 7,25: fermatevi prima di sballare.»
 
 ### 🎰 Casino 5 manche — nell'atto 3
 - **Cinque manche, una girata ciascuna**: colore, dozzina, parità, alto/basso e numero secco; scelta in dieci secondi.

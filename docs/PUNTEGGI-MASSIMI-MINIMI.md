@@ -29,7 +29,7 @@ cambia la distribuzione dei piazzamenti (seconda tabella) e il numero di bombe.
 | **Ultima spiaggia** | 1 manche per apparizione; 5 in serata | +500 | −250 | +500 | −250 | TV (`level` scelto) |
 | **Immagine sfocata** | 3 manches da 45 s (333/333/334) | +1000 | −1000 | +1000 | −1000 | TV (`calculatePoints`) |
 | **Ruota della fortuna** | 1 frase da 75 s | +1000 | −1000 | +1000 | −1000 | TV (`calculatePoints`) |
-| **Arena** | 1 round da 130 s | +1000 + 10×risposte giuste | −300 − 10×risposte sbagliate | +1000 + 10×risposte giuste | −300 − 10×risposte sbagliate | TV (`calculatePoints` + piazzamento) |
+| **Arena** | 1 round da 130 s | +10×risposte giuste | −10×risposte sbagliate | +10×risposte giuste | −10×risposte sbagliate | TV (`calculatePoints`) |
 
 Note alle celle:
 
@@ -66,7 +66,8 @@ Note alle celle:
 - **Immagine/Ruota, −1000:** una sola risposta per squadra nel round;
   una risposta sbagliata manda `BLOCKED_ERROR` e chiude il round per quella squadra.
 - **Arena:** non è limitata dalle costanti: il numero di risposte rapide in 130 s
-  non è fissato. Il piazzamento finale vale +1000 / +500 / −300.
+  non è fissato. Il round somma **+10 / −10** per risposta; il piazzamento
+  **+1000 / +500 / −300** è stato rimosso.
 
 ## 2. Dove N cambia davvero: le distribuzioni
 
@@ -107,7 +108,7 @@ N=10  B=4   malus: −500, −380, −250, −130     totale round −1260
 | Karaoke | +1000 (100 + 150 + 200 + 250 + 300) | 0 | `BONUS_KARAOKE_MANCHE_POINTS` |
 | Casino 5 manche | +1500 (100 + 200 + 100 + 100 + 1000) | 0 | `BONUS_CASINO_FIVE_POINTS` |
 | Casino numero secco | +1000 (una volta sola) | 0 | `BONUS_CASINO_NUMBER_POINTS` |
-| Blackjack | 0 (premio del bar) | 0 | `BONUS_SCORING` |
+| Sette e Mezzo | 0 (premio del bar) | 0 | `BONUS_SCORING` |
 | Cavallo di battaglia | 0 (premio del bar) | 0 | `BONUS_SCORING` |
 
 ## 4. Squilibri, in ordine di valore

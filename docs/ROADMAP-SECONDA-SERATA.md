@@ -48,7 +48,7 @@ scadenza e blocco dopo cinque errori).
 | N-07 — Tick infinito | **Da fare** | Il controllo dei proprietari audio (`AudioChannels.setOwner`) spegne già i loop della scena uscente; non è stata trovata una causa riproducibile senza la serata. |
 | N-08 — Vibrazione e fallback iPhone | **Fatto** | Se `navigator.vibrate` manca o è negata, il via accende un flash e un colpo breve; `BONUS_STARTED` usa lo stesso percorso. |
 | N-09 — Karaoke: controlli e demo | **Parziale** | Aggiunto `npm run check:karaoke` (banca, clip, testi e almeno 5 manche complete). Restano banner di conteggio nella lobby e prova completa con `?karaoke-demo=1`. |
-| N-10…N-15 (blocco B) | **Parziale** | N-10 **riaperto**: layout shift 0 in tutte le misure, ma l'asserzione dura `framesOver50 === 0` è tornata in `e2e/ingressi.spec.ts`; il budget frame (100 ms/1 in isolamento, 433 ms/27 nel flusso reale) non è chiuso. N-11…N-14 fatti; N-15 fatto (flash, storico, film, statistiche). Selfie/poster in N-33. |
+| N-10…N-15 (blocco B) | **Fatto / N-10b** | N-10 **chiuso sul layout**: CLS 0 e shift 0 in tutte le misure; il passaggio a sole dissolvenze ha chiuso le ultime cause (stage, scena Musica). Resta **N-10b**, il budget frame (`framesOver50 === 0` in `e2e/ingressi.spec.ts`, 100 ms/1 in isolamento, 433 ms/27 nel flusso reale): è tracciato nello STATUS, non riapre N-10. N-11…N-14 fatti; N-15 fatto. |
 | N-16…N-48 (blocco C) | **Parziale** | N-16 fatto: riepilogo a punti e TV con le sole risposte esatte. Bonus: Sette e Mezzo 1v1 al posto del Blackjack in scaletta, telefoni e regia; il codice Blackjack resta ma è fuori dal flusso. Restano N-17…N-48; D2 (Timeline e gioco che la sostituisce nell'atto 1) **non toccata**: serve la scelta del committente. |
 | N-49…N-51 (blocco D) | **Da fare** | |
 | N-52…N-55 (blocco E) | **Da fare** | N-53 si ferma alla demo Quiz per approvazione. |
@@ -687,7 +687,7 @@ anche a brano fermo» e «il riquadro audio resta nel layout anche a brano
 fermo». Verifica visiva e misurata a 1280×720 su Chromium (scena reale iniettata
 sui signal, non un mock statico).
 
-**Resta aperto in N-10:** i long task d'ingresso (Quiz 615 ms, Timeline 557 ms
+**Resta aperto in N-10b:** i long task d'ingresso (Quiz 615 ms, Timeline 557 ms
 misurati a CPU 4×) e il componente unico `FeedbackCard` per
 esito corretto/sbagliato: oggi ogni gioco disegna la propria card.
 
@@ -721,12 +721,12 @@ scarica o in CI. Non si dichiara chiuso un criterio che non è stato misurato.
 caricamento delle clip `atto-*.m4a`/`gioco-*.m4a` avvengono prima che la scena
 sia visibile; i long task da payload/rete non sono frame dell'ingresso.
 
-**N-10 resta aperto.** Il layout shift è 0 in tutte le misure, ma il criterio
-ha due metà: il budget frame **non** è chiuso (100 ms/1 in isolamento, 433 ms/27
-nel flusso reale sulla macchina carica). L'asserzione dura
-`expect(metrics.framesOver50).toBe(0)` è stata rimessa in
-`e2e/ingressi.spec.ts`: il banco resta rosso finché il budget non scende, non
-si chiude togliendo il controllo.
+**N-10 chiuso sul layout; N-10b aperto.** Il layout shift è 0 in tutte le misure:
+la metà «niente scatti di layout» è chiusa. Resta il budget frame **N-10b**
+(100 ms/1 in isolamento, 433 ms/27 nel flusso reale sulla macchina carica).
+L'asserzione dura `expect(metrics.framesOver50).toBe(0)` resta in
+`e2e/ingressi.spec.ts` per N-10b: il banco è rosso finché il budget non scende,
+non si chiude togliendo il controllo.
 
 **Isolamento (round finto, senza audio né payload).** `N-10 MUSIC isolata`, tre
 misure: `cls=0 long=0 frame=67ms/2`, `cls=0 long=1 max=168ms frame=167ms/2`
