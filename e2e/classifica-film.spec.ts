@@ -274,9 +274,14 @@ async function hidePlatformEmoji(page: Page): Promise<void> {
   // Le emoji native (corona/medaglia) cambiano disegno tra Windows e Linux.
   // Le nascondiamo con visibility, che conserva il layout, invece di
   // mascherarle: a zoom la maschera della corona coprirebbe anche il chip
-  // «CLASSIFICA FINALE» che le passa sopra.
+  // «CLASSIFICA FINALE» che le passa sopra. La corona resta nel flusso, quindi
+  // l'interlinea va fissata: quella del font emoji cambia tra Windows e Linux
+  // e sposta di qualche pixel tutta la copertina del vincitore.
   await page.addStyleTag({
-    content: `${FILM} .crown-inner, ${FILM} .medal { visibility: hidden !important; }`,
+    content: [
+      `${FILM} .crown-inner { visibility: hidden !important; line-height: 1 !important; }`,
+      `${FILM} .medal { visibility: hidden !important; }`,
+    ].join('\n'),
   });
 }
 
