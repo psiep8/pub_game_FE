@@ -173,6 +173,8 @@
         <p class="lobby-legal">
           <span class="lobby-legal-rule">Giochi a punti · nessuna posta in denaro · premi alla classifica finale</span>
           <a href="/crediti">Crediti e licenze</a>
+          <span>·</span>
+          <a href="/sette-e-mezzo">Sette e Mezzo</a>
         </p>
       </div>
     </div>
@@ -446,7 +448,7 @@
 
 @if (getRecentResponsesWithScores().length && !quizSummaryVisible()) {
 <div class="recent-responses">
-  <div class="recent-header">RISPOSTE</div>
+  <div class="recent-header">RISPOSTE ESATTE</div>
   <div class="recent-list">
     @for (r of getRecentResponsesWithScores(); track r.playerName) {
     <div class="recent-item" alive="drift" [aliveSeed]="7">

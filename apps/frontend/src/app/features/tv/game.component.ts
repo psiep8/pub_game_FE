@@ -3950,7 +3950,13 @@ export class GameComponent implements OnInit, OnDestroy {
       byPlayer.set(playerName, row);
     }
 
-    return [...byPlayer.values()].reverse().map(r => {
+    // N-16: in TV restano solo le risposte esatte. Con più di cinque squadre
+    // l'elenco delle errate non regge e alla sala non serve: il riepilogo
+    // comune porta già i punti del round per squadra.
+    return [...byPlayer.values()]
+      .filter((row) => Number(row?.points) > 0)
+      .reverse()
+      .map(r => {
       const playerScore = this.leaderboardService.getLeaderboard()
         .find(p => p.playerName === r.playerName);
 

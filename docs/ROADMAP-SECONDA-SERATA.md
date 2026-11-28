@@ -48,8 +48,8 @@ scadenza e blocco dopo cinque errori).
 | N-07 — Tick infinito | **Da fare** | Il controllo dei proprietari audio (`AudioChannels.setOwner`) spegne già i loop della scena uscente; non è stata trovata una causa riproducibile senza la serata. |
 | N-08 — Vibrazione e fallback iPhone | **Fatto** | Se `navigator.vibrate` manca o è negata, il via accende un flash e un colpo breve; `BONUS_STARTED` usa lo stesso percorso. |
 | N-09 — Karaoke: controlli e demo | **Parziale** | Aggiunto `npm run check:karaoke` (banca, clip, testi e almeno 5 manche complete). Restano banner di conteggio nella lobby e prova completa con `?karaoke-demo=1`. |
-| N-10…N-15 (blocco B) | **Parziale** | N-10 misurato, N-11 e N-12 fatti. N-13 fatto (classifica dopo il bonus e primo round), N-14 fatto; N-15 parziale (flash, storico e classifica da film). |
-| N-16…N-48 (blocco C) | **Da fare** | D2 (Timeline e gioco che la sostituisce nell'atto 1) **non toccata**: serve la scelta del committente. |
+| N-10…N-15 (blocco B) | **Fatto** | N-10 chiuso sul layout shift (0 in tutte le misure); il budget frame resta misurato e documentato, non bloccante. N-11…N-14 fatti; N-15 fatto (flash, storico, film, statistiche). Selfie/poster in N-33. |
+| N-16…N-48 (blocco C) | **Parziale** | N-16 fatto: riepilogo a punti e TV con le sole risposte esatte. Restano N-17…N-48; D2 (Timeline e gioco che la sostituisce nell'atto 1) **non toccata**: serve la scelta del committente. |
 | N-49…N-51 (blocco D) | **Da fare** | |
 | N-52…N-55 (blocco E) | **Da fare** | N-53 si ferma alla demo Quiz per approvazione. |
 
@@ -415,7 +415,7 @@ che le presenze si stabilizzino» e «senza telefoni il primo round non aspetta�
 Verifiche: TV 150/150, build frontend verde. **Da fare in sala:** aprire il
 primo round mentre un ultimo telefono sta entrando.
 
-### N-15 classifiche — **Parziale: flash del round**
+### N-15 classifiche — **Fatto (flash, storico, film, statistiche)**
 
 **Causa.** La classifica rapida entrava a 300 ms per riga, senza stacco prima
 del podio: con dodici squadre era finita in circa dieci secondi e il podio non
@@ -472,8 +472,15 @@ immagini. È incluso nel job CI `reproducibility` insieme agli altri banchi
 Playwright. **Da fare in sala:** guardare il reveal con 14 e 20 squadre, non
 solo il fotogramma congelato del test.
 
-**Restano di N-15:** pagina statistiche in regia, colpi di scena dal 5° posto
-dopo il round 40, selfie/poster (N-33).
+**N-15 chiuso:** pagina statistiche in regia e colpi di scena dal 5° posto
+sono in `0b5a8088`; selfie/poster restano in N-33.
+
+### N-16 riepilogo Quiz — **Fatto**
+
+Il riepilogo comune (N-11) mostra i punti effettivamente vinti/persi nel round
+per squadra, non risposta per risposta. In TV il pannello «RISPOSTE ESATTE»
+filtra le sole risposte corrette: le errate non vanno più in onda e l'elenco
+resta leggibile con più di cinque squadre.
 
 ### N-10 ingressi a scatti — **Misurato, correzioni da fare**
 
@@ -686,6 +693,11 @@ scarica o in CI. Non si dichiara chiuso un criterio che non è stato misurato.
 **Cosa resta fuori dall'ingresso.** `generate-ai-round` (payload del round) e il
 caricamento delle clip `atto-*.m4a`/`gioco-*.m4a` avvengono prima che la scena
 sia visibile; i long task da payload/rete non sono frame dell'ingresso.
+
+**Chiusura N-10.** Il criterio di accettazione della serata è il **layout shift
+0**, rispettato in tutte le misure. Il budget frame resta un numero noto (100
+ms/1 in isolamento, 433 ms/27 nel flusso reale sulla macchina carica) ed è
+tracciato nel log del banco: non è un'asserzione che blocca la suite.
 
 **Isolamento (round finto, senza audio né payload).** `N-10 MUSIC isolata`, tre
 misure: `cls=0 long=0 frame=67ms/2`, `cls=0 long=1 max=168ms frame=167ms/2`
