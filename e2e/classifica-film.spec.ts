@@ -98,7 +98,18 @@ async function mountFilm(page: Page, count: number): Promise<void> {
   await expect(page.locator(`${FILM} .grand-leaderboard`)).toBeVisible({ timeout: 10_000 });
 }
 
-async function snapshotAt(page: Page, position: number): Promise<LayoutSnapshot> {
+async function waitForNaturalPreannounce(page: Page): Promise<void> {
+  // Nessuna iniezione qui: aspettiamo il timer del reveal vero. Il primo
+  // preavviso arriva prima del terzo posto, dopo i posti non-podio.
+  await page.waitForFunction(() => {
+    const preannounce = document.querySelector('app-leaderboard-detailed .film-preannounce');
+    if (!preannounce || !preannounce.textContent?.includes('TRA POCO')) return false;
+    const rect = preannounce.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  }, null, { timeout: 45_000 });
+}
+
+async function snapshotAt(page: Page, position: number | null): Promise<LayoutSnapshot> {
   return page.evaluate(({ wanted }) => {
     const FILM = 'app-leaderboard-detailed';
     const ng = (window as any).ng;
@@ -106,15 +117,18 @@ async function snapshotAt(page: Page, position: number): Promise<LayoutSnapshot>
     const component: any = ng.getComponent(host);
     const filmElement = document.querySelector('app-leaderboard-detailed');
     const film: any = ng.getComponent(filmElement);
-    const target = component.leaderboardService
-      .getLeaderboard()
-      .find((player: any) => Number(player.position) === wanted);
-    if (!target) throw new Error(`Posizione ${wanted} assente`);
 
-    // Il reveal continua in background: fissiamo il fotogramma da misurare.
-    film.currentPlayer.set(target);
-    film.podiumSoon.set(wanted <= 3 ? wanted : null);
-    ng.applyChanges(filmElement);
+    if (wanted !== null) {
+      const target = component.leaderboardService
+        .getLeaderboard()
+        .find((player: any) => Number(player.position) === wanted);
+      if (!target) throw new Error(`Posizione ${wanted} assente`);
+
+      // Il reveal continua in background: fissiamo il fotogramma da misurare.
+      film.currentPlayer.set(target);
+      film.podiumSoon.set(wanted <= 3 ? wanted : null);
+      ng.applyChanges(filmElement);
+    }
 
     const q = (selector: string): HTMLElement | null =>
       document.querySelector(`${FILM} ${selector}`) as HTMLElement | null;
@@ -197,38 +211,45 @@ async function snapshotAt(page: Page, position: number): Promise<LayoutSnapshot>
   }, { wanted: position });
 }
 
+function expectLayout(snapshot: LayoutSnapshot, label: string, withPreannounce: boolean): void {
+  expect(snapshot.player, `${label}: giocatore`).toBeTruthy();
+  expect(snapshot.stats, `${label}: statistiche mancanti`).not.toBeNull();
+  expect(snapshot.statsInsideShowcase, `${label}: statistiche fuori dalla copertina`).toBe(true);
+  expect(snapshot.statsOverlaps, `${label}: statistiche sovrapposte`).toEqual([]);
+  expect(snapshot.clipped, `${label}: testo tagliato`).toEqual([]);
+  expect(snapshot.showcaseOverflow, `${label}: copertina tagliata`).toBe(false);
+
+  if (!withPreannounce) {
+    expect(snapshot.preannounce, `${label}: timbro inatteso`).toBeNull();
+    return;
+  }
+
+  expect(snapshot.preannounce, `${label}: timbro assente`).not.toBeNull();
+  expect(snapshot.preannounceInsideShowcase, `${label}: timbro fuori dalla copertina`).toBe(true);
+  expect(snapshot.preannounceOverlaps, `${label}: timbro sovrapposto`).toEqual([]);
+  expect(snapshot.preannouncePosition).toBe('absolute');
+  expect(snapshot.preannounceText).toContain('TRA POCO');
+  expect(snapshot.preannounce!.width).toBeLessThan(VIEWPORT.width / 2);
+  expect(snapshot.preannounce!.height).toBeLessThan(VIEWPORT.height / 2);
+}
+
 for (const teams of [14, 20]) {
   test(`classifica da film, ${teams} squadre a 1280×720: niente sovrapposizioni o clipping`, async ({ page }) => {
     await page.setViewportSize(VIEWPORT);
     await openTv(page);
     await mountFilm(page, teams);
 
+    // Prima il passaggio reale: il timbro compare da solo durante il reveal.
+    await waitForNaturalPreannounce(page);
+    expectLayout(await snapshotAt(page, null), `naturale ${teams} squadre`, true);
+
+    // Dopo l'attesa il sync del server può aver svuotato la classifica di
+    // prova: rimontiamo lo stesso stato per i fotogrammi fissi.
+    await mountFilm(page, teams);
+
+    // Poi i fotogrammi fissi, per coprire anche ultimo e primo posto.
     for (const position of [teams, 3, 1]) {
-      const snapshot = await snapshotAt(page, position);
-
-      expect(snapshot.player, `posizione ${position}`).toBeTruthy();
-      expect(snapshot.stats, `statistiche mancanti in posizione ${position}`).not.toBeNull();
-      expect(snapshot.statsInsideShowcase, `statistiche fuori dalla copertina in posizione ${position}`)
-        .toBe(true);
-      expect(snapshot.statsOverlaps, `statistiche sovrapposte in posizione ${position}`)
-        .toEqual([]);
-      expect(snapshot.clipped, `testo tagliato in posizione ${position}`).toEqual([]);
-      expect(snapshot.showcaseOverflow, `copertina tagliata in posizione ${position}`)
-        .toBe(false);
-
-      if (position <= 3) {
-        expect(snapshot.preannounce, `timbro assente in posizione ${position}`).not.toBeNull();
-        expect(snapshot.preannounceInsideShowcase, `timbro fuori dalla copertina in posizione ${position}`)
-          .toBe(true);
-        expect(snapshot.preannounceOverlaps, `timbro sovrapposto in posizione ${position}`)
-          .toEqual([]);
-        expect(snapshot.preannouncePosition).toBe('absolute');
-        expect(snapshot.preannounceText).toContain('TRA POCO');
-        expect(snapshot.preannounce!.width).toBeLessThan(VIEWPORT.width / 2);
-        expect(snapshot.preannounce!.height).toBeLessThan(VIEWPORT.height / 2);
-      } else {
-        expect(snapshot.preannounce).toBeNull();
-      }
+      expectLayout(await snapshotAt(page, position), `posizione ${position}`, position <= 3);
     }
   });
 }
