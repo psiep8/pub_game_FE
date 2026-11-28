@@ -3,6 +3,8 @@ import { BACKEND_PORT, FRONTEND_PORT } from './e2e/ports';
 
 export default defineConfig({
   testDir: './e2e',
+  // I baselines devono valere su Windows e Linux: niente suffisso di piattaforma.
+  snapshotPathTemplate: '{testDir}/__screenshots__/{arg}{ext}',
   timeout: 180_000,
   expect: { timeout: 20_000 },
   fullyParallel: false,

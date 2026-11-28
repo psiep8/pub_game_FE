@@ -466,9 +466,11 @@ del terzo, del secondo e del vincitore — poi si ferma su ultimo/terzo/primo
 posto. Controlla che statistiche e timbro restino dentro la copertina, senza
 sovrapposizioni e senza testo tagliato: 6/6. Il caso zoom ha trovato un
 overflow reale della copertina del vincitore, corretto con una media query per
-schermi bassi. È incluso nel job CI `reproducibility` insieme agli altri banchi
-Playwright. **Da fare in sala:** guardare il reveal con 14 e 20
-squadre, non solo il fotogramma congelato del test.
+schermi bassi. Timbro, podio e vincitore hanno anche baseline screenshot
+stabili (`e2e/__screenshots__`) per 1366×768 e zoom, 14 e 20 squadre: 12
+immagini. È incluso nel job CI `reproducibility` insieme agli altri banchi
+Playwright. **Da fare in sala:** guardare il reveal con 14 e 20 squadre, non
+solo il fotogramma congelato del test.
 
 **Restano di N-15:** pagina statistiche in regia, colpi di scena dal 5° posto
 dopo il round 40, selfie/poster (N-33).

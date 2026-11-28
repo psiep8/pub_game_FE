@@ -7,6 +7,9 @@ out-tsc/
 .angular/
 coverage/
 __screenshots__/
+# Le baseline Playwright del banco N-15 sono versionate.
+!/e2e/__screenshots__/
+!/e2e/__screenshots__/*.png
 
 # --- Strumenti locali (JDK e ffmpeg scaricati senza admin) ---
 .tools/
