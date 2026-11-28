@@ -119,6 +119,36 @@
   margin: 0 auto;
 }
 
+/* Regola della serata e crediti: ultima riga della colonna, non sopra la scena. */
+.lobby-legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 12px;
+  width: fit-content;
+  max-width: 100%;
+  margin: clamp(10px, 1.6vh, 18px) 0 0;
+  padding: 6px 12px;
+  background: var(--paper);
+  color: var(--coal);
+  border: 2px solid var(--coal);
+  box-shadow: 4px 4px 0 var(--coal);
+  font-family: var(--font-mono);
+  font-size: clamp(0.55rem, 0.78vw, 0.72rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  text-align: center;
+  text-transform: uppercase;
+}
+.lobby-legal a {
+  color: var(--cobalt-ink);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+
 .lobby .qr-section {
   padding: clamp(16px, 2.4vh, 28px) !important;
   background: var(--paper) !important;

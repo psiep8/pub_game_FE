@@ -17,6 +17,61 @@ import { DEMO_ORDER, DEMO_SCRIPTS } from '../tv/demo-scripts';
 /** Giochi con più manche: il pulsante unico diventa «PROSSIMA MANCHE». */
 const MANCHE_GAMES = new Set(['QUIZ', 'IMAGE_BLUR', 'WHEEL_OF_FORTUNE', 'TIME_BUZZER', 'AZZARDO', 'MUSIC']);
 
+/**
+ * Checklist licenze della regia. Non è una consulenza: è il promemoria di cosa
+ * chiedere al gestore prima di far suonare brani veri o aprire il Karaoke.
+ * Lo stato vive solo nel browser della regia, in localStorage.
+ */
+type LicenseState = 'todo' | 'warn' | 'ok';
+
+interface LicenseItem {
+  key: string;
+  label: string;
+  hint: string;
+  who: string;
+}
+
+const LICENSE_ITEMS: readonly LicenseItem[] = [
+  {
+    key: 'siae',
+    label: "SIAE — musica d'ambiente",
+    hint: 'Diffusione dei brani durante la serata',
+    who: 'gestore',
+  },
+  {
+    key: 'scf',
+    label: 'SCF — fonogrammi',
+    hint: 'Registrazioni e basi musicali',
+    who: 'gestore',
+  },
+  {
+    key: 'karaoke',
+    label: 'Licenza karaoke',
+    hint: "Esibizione e testo proiettato: la musica d'ambiente non basta",
+    who: 'gestore',
+  },
+  {
+    key: 'no-youtube',
+    label: 'YouTube escluso dal gioco',
+    hint: 'Nessun video o brano servito da YouTube',
+    who: 'noi',
+  },
+  {
+    key: 'no-previews',
+    label: 'Anteprime iTunes escluse',
+    hint: 'Nessuna clip salvata dalle anteprime',
+    who: 'noi',
+  },
+  {
+    key: 'images',
+    label: 'Immagini attribuite',
+    hint: 'Wikimedia e TMDB: autore e licenza nel registro',
+    who: 'noi',
+  },
+];
+
+const LICENSE_STORAGE_KEY = 'quizzone.licenze.v1';
+
 @Component({
   selector: 'app-admin-component',
   standalone: true,
@@ -80,6 +135,19 @@ export class Admin implements OnInit, OnDestroy {
   readonly actPauseMinutes = signal(3);
   private destroyRef = inject(DestroyRef);
   public theme = inject(ThemeService);
+
+  /** Checklist licenze: stato locale alla regia, nessun dato al server. */
+  readonly licenseItems = LICENSE_ITEMS;
+  readonly licenseStates = signal<Record<string, LicenseState>>(this.loadLicenseStates());
+  readonly licenseSummary = computed(() => {
+    const states = this.licenseStates();
+    const values = LICENSE_ITEMS.map((item) => states[item.key] ?? 'todo');
+    return {
+      ok: values.filter((value) => value === 'ok').length,
+      warn: values.filter((value) => value === 'warn').length,
+      todo: values.filter((value) => value === 'todo').length,
+    };
+  });
 
   
   correctAnswer = signal<string | null>(null);
@@ -823,6 +891,52 @@ export class Admin implements OnInit, OnDestroy {
         this.expelNotice.set('Espulsione non riuscita: controlla l’abbinamento della regia.');
       },
     });
+  }
+
+  licenseState(key: string): LicenseState {
+    return this.licenseStates()[key] ?? 'todo';
+  }
+
+  licenseIcon(state: LicenseState): string {
+    return state === 'ok' ? '✅' : state === 'warn' ? '⚠️' : '⬜';
+  }
+
+  /** Un tocco cambia stato: da fare → confermato → da verificare → da fare. */
+  cycleLicense(key: string): void {
+    const current = this.licenseState(key);
+    const next: LicenseState = current === 'todo' ? 'ok' : current === 'ok' ? 'warn' : 'todo';
+    this.setLicenseStates({ ...this.licenseStates(), [key]: next });
+    this.vibrate(15);
+  }
+
+  resetLicenses(): void {
+    if (!window.confirm('Azzerare la checklist licenze?')) return;
+    this.setLicenseStates({});
+  }
+
+  private setLicenseStates(states: Record<string, LicenseState>): void {
+    this.licenseStates.set(states);
+    try {
+      localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(states));
+    } catch {
+      // Storage pieno o disabilitato: la checklist resta valida per la sessione.
+    }
+  }
+
+  private loadLicenseStates(): Record<string, LicenseState> {
+    try {
+      const raw = localStorage.getItem(LICENSE_STORAGE_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      const states: Record<string, LicenseState> = {};
+      for (const item of LICENSE_ITEMS) {
+        const value = parsed?.[item.key];
+        if (value === 'ok' || value === 'warn' || value === 'todo') states[item.key] = value;
+      }
+      return states;
+    } catch {
+      return {};
+    }
   }
 
   private vibrate(pattern: number | number[]) {

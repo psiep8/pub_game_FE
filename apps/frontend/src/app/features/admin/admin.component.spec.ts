@@ -214,6 +214,20 @@ describe('Admin', () => {
     expect(component.primaryAction().label).toBe('RIPRENDI');
   });
 
+  it('L-01: la checklist licenze parte da «da fare» e ruota di stato', () => {
+    component.licenseStates.set({});
+    expect(component.licenseSummary()).toEqual({ ok: 0, warn: 0, todo: 6 });
+
+    component.cycleLicense('siae');
+    expect(component.licenseState('siae')).toBe('ok');
+    component.cycleLicense('siae');
+    expect(component.licenseState('siae')).toBe('warn');
+    component.cycleLicense('siae');
+    expect(component.licenseState('siae')).toBe('todo');
+
+    expect(component.licenseSummary()).toEqual({ ok: 0, warn: 0, todo: 6 });
+  });
+
   it('should clear the question state when the round ends', async () => {
     ws.status$.next({ action: 'PLAYER_PRENOTATO', name: 'Anna' });
     ws.status$.next({ action: 'ROUND_ENDED' });

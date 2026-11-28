@@ -11,6 +11,8 @@
       </div>
       <a class="theme-btn" href="/audio" target="_blank" rel="noopener"
         title="Regia audio: prova ogni suono della serata">🔊 <span>AUDIO</span></a>
+      <a class="theme-btn" href="/crediti" target="_blank" rel="noopener"
+        title="Crediti e licenze della serata">📜 <span>LICENZE</span></a>
       <button class="theme-btn" (click)="theme.toggle()" [attr.aria-label]="'Cambia tema: ' + theme.label()" [attr.title]="'Tema ' + theme.label()">
         🎨 <span>{{ theme.label() }}</span>
       </button>
@@ -215,6 +217,39 @@
         </div>
       </div>
     }
+  </div>
+
+  <div class="flow-panel license-panel">
+    <div class="flow-title">📜 LICENZE — DA CONFERMARE PRIMA DELLA SERATA</div>
+    <p class="flow-note">
+      Un tocco cambia stato: ⬜ da fare → ✅ confermato → ⚠️ da verificare.
+      Non è una consulenza: è il promemoria di cosa chiedere al gestore.
+    </p>
+    <div class="license-list">
+      @for (item of licenseItems; track item.key) {
+        <button type="button" class="license-row"
+          [class.is-ok]="licenseState(item.key) === 'ok'"
+          [class.is-warn]="licenseState(item.key) === 'warn'"
+          [class.is-todo]="licenseState(item.key) === 'todo'"
+          (click)="cycleLicense(item.key)">
+          <span class="license-icon" aria-hidden="true">{{ licenseIcon(licenseState(item.key)) }}</span>
+          <span class="license-text">
+            <b>{{ item.label }}</b>
+            <small>{{ item.hint }}</small>
+          </span>
+          <span class="license-who">{{ item.who }}</span>
+        </button>
+      }
+    </div>
+    <p class="license-summary">
+      <b>{{ licenseSummary().ok }}</b> confermati ·
+      <b>{{ licenseSummary().warn }}</b> da verificare ·
+      <b>{{ licenseSummary().todo }}</b> da fare
+    </p>
+    <div class="flow-grid">
+      <a class="flow-btn" href="/crediti" target="_blank" rel="noopener">📄 APRI CREDITI</a>
+      <button class="flow-btn ghost" type="button" (click)="resetLicenses()">↺ AZZERA</button>
+    </div>
   </div>
 
   <div class="flow-panel">

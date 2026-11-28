@@ -349,7 +349,7 @@ Il registro completo dei difetti emersi nella prima serata (F01–F55), con stat
 - **Musica**: senza banca locale il backend usa le anteprime pubbliche di 30 secondi dell'iTunes Search API; con la banca locale i file sono serviti da `/media/...`.
 - **Banca media locale (opzionale)**: può contenere anche i volti (`static/media/people/*.jpg`), le copertine (`static/media/covers/*.jpg`) e i brani (`static/media/music/*.m4a`), indicizzati da `questions/media-it.json`. **Non è inclusa nel repository**: `.gitignore` esclude `static/media/` e `media-it.json`. Va generata con `python scripts/generate-questions/generate_media.py --from-azzardo` (o copiata) prima della build. Con la banca installata il backend non chiama iTunes, TMDB o Wikipedia: ciò che manca resta un segnaposto.
 - **Come aggiungere domande**: aggiungi voci alla banca JSON (o rigenera con lo script) mantenendo ID univoci e categorie esistenti; riavvia il backend e verifica la diagnostica delle domande usate.
-- **Licenze**: nel repository non c'è un file `LICENSE`. I testi delle domande e il codice appartengono al proprietario del repository; le foto TMDB e le anteprime iTunes restano soggette ai rispettivi termini. Prima di un uso pubblico o commerciale verifica le licenze delle fonti multimediali.
+- **Licenze**: nel repository non c'è un file `LICENSE`. I testi delle domande e il codice appartengono al proprietario del repository; le foto TMDB e le anteprime iTunes restano soggette ai rispettivi termini. Prima di un uso pubblico o commerciale verifica le licenze delle fonti multimediali. La raccolta operativa — SIAE, SCF, karaoke, YouTube, anteprime, immagini e cosa mostrare in app — sta in [`docs/LICENZE.md`](docs/LICENZE.md).
 
 ## 14. Licenza e contatti
 
@@ -370,6 +370,7 @@ Per segnalazioni o proposte: apri una issue nel repository.
 | [`docs/SERATA-PROVA.md`](docs/SERATA-PROVA.md) | Programma e checklist della prova con telefoni veri |
 | [`docs/ROADMAP-POST-PRIMA-SERATA.md`](docs/ROADMAP-POST-PRIMA-SERATA.md), [`docs/FIX-PRE-SERATA.md`](docs/FIX-PRE-SERATA.md) | Registro dei difetti e stato delle correzioni |
 | [`docs/SOTTOFONDI.md`](docs/SOTTOFONDI.md), [`docs/MANIFESTO-AUDIO.md`](docs/MANIFESTO-AUDIO.md), [`docs/AUDIO-CATALOGO.md`](docs/AUDIO-CATALOGO.md), [`docs/CREDITI-AUDIO.md`](docs/CREDITI-AUDIO.md) | Audio: loop, file, catalogo, crediti |
+| [`docs/LICENZE.md`](docs/LICENZE.md) | SIAE, SCF, karaoke, YouTube, anteprime: cosa serve e come mostrarlo in app |
 | [`DESCRIZIONE-GIOCO.md`](DESCRIZIONE-GIOCO.md), [`PRESENTAZIONE-PUBGAME.md`](PRESENTAZIONE-PUBGAME.md) | Descrizione e copione di presentazione |
 | [`AGENTS.md`](AGENTS.md) | Stile grafico obbligatorio e regole per chi modifica l'interfaccia |
 | [`docs/PULIZIA-REPORT.md`](docs/PULIZIA-REPORT.md), [`docs/STRESS-REPORT.md`](docs/STRESS-REPORT.md) | Pulizia del repository (prove di ogni rimozione) e misure di carico, crash e soak |
