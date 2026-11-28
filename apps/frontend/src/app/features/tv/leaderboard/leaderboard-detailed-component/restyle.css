@@ -283,3 +283,13 @@
   border: 2px solid var(--paper-hi);
   transform: rotate(-1deg);
 }
+
+/* Schermi bassi e zoom 125%: la copertina del vincitore non deve mai
+   tagliare le statistiche. Stringiamo solo spazi e respiro verticale. */
+@media (max-height: 680px) {
+  .grand-leaderboard .player-showcase {
+    gap: clamp(3px, 0.8vh, 8px) !important;
+    padding-top: clamp(12px, 2.2vh, 22px) !important;
+    padding-bottom: clamp(12px, 2.2vh, 22px) !important;
+  }
+}
