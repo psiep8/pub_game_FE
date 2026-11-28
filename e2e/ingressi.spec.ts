@@ -36,6 +36,8 @@ const DEMO_TYPES = [
  * l'indice e il primo AVANTI apre quella scena.
  */
 const GAMES: Array<{ game: string; round: number }> = [
+  // Musica apre la scaletta: indice 0, il primo AVANTI della serata.
+  { game: 'MUSIC', round: 0 },
   { game: 'QUIZ', round: 1 },
   { game: 'WHEEL_OF_FORTUNE', round: 2 },
   { game: 'TIME_BUZZER', round: 3 },
@@ -274,6 +276,11 @@ async function measureGame(
     await joinPhone(phone, gameId, `N10-${target.game.slice(0, 3)}${index}`);
   }
 
+  // La lobby aggiorna i passi quando entra l'ultimo telefono: si lascia
+  // finire l'animazione prima di azzerare la misura, altrimenti il suo
+  // layout-shift finisce nell'ingresso del gioco.
+  await tv.waitForTimeout(1500);
+
   // CPU 4× sulla TV, dopo il caricamento e prima dell'ingresso.
   const session = await context.newCDPSession(tv);
   await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
@@ -339,6 +346,76 @@ test.describe('N-10: ingressi', () => {
  * La cornice della foto riserva la sua area: l'immagine che arriva non deve
  * allargare la colonna e far saltare titolo e indizio insieme.
  */
+test.describe('N-10: bonus Cavallo', () => {
+  test('l\'ingresso del Cavallo non sposta la scena', async ({ browser }) => {
+    test.setTimeout(300_000);
+    const token = await bootstrapToken(browser);
+    const gameId = await createGame(token);
+    const context = await browser.newContext({ viewport: VIEWPORT });
+    const tv = await context.newPage();
+    await instrumentObservers(tv);
+    await openTv(tv, gameId);
+
+    // Il bonus parte da una partita in scena, non dalla lobby: la regia lo
+    // apre dopo il primo round, e la lobby resterebbe sopra il bonus.
+    const pressed = await pressAdvance(tv);
+    expect(pressed, 'AVANTI non disponibile in lobby').toBe(true);
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+      await tv.waitForTimeout(500);
+      if (await typeOf(tv)) break;
+    }
+    await tv.waitForTimeout(1200);
+
+    // Il rullo delle categorie apre il round: il bonus non parte mentre gira.
+    await tv.waitForFunction(() => {
+      const component: any = (window as any).ng?.getComponent(
+        document.querySelector('app-game-component'),
+      );
+      const spinning = typeof component?.isSpinning === 'function'
+        ? component.isSpinning()
+        : component?.isSpinning;
+      return Boolean(component) && !spinning;
+    }, undefined, { timeout: 30_000 }).catch(() => undefined);
+
+    const session = await context.newCDPSession(tv);
+    await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    await reset(tv);
+
+    // La misura è dell'ingresso, non del flusso del bonus: si apre lo stato
+    // dell'ingresso direttamente, come fa la classifica-film con lo storico.
+    // `startBonus` dipende dallo slot dell'atto, che in un round qualsiasi è
+    // chiuso dal server e spegnerebbe subito la scena.
+    const started = await tv.evaluate(() => {
+      const ng = (window as any).ng;
+      const host = document.querySelector('app-game-component');
+      const component: any = ng?.getComponent(host);
+      if (!component) return false;
+      component.bonusEntrance.set('CAVALLO');
+      component.bonusEntranceEntry.set(component.entranceFor('CAVALLO'));
+      ng.applyChanges(host);
+      return true;
+    });
+    expect(started, 'componente TV non trovato').toBe(true);
+    // L'host del componente è vuoto: la scena visibile è l'overlay fisso.
+    await expect(
+      tv.locator('app-bonus-entrance .be-overlay'),
+    ).toBeVisible({ timeout: 30_000 });
+    await tv.waitForTimeout(MEASURE_MS);
+
+    const metrics = await readMetrics(tv);
+    await context.close();
+
+    console.log(
+      `N-10 CAVALLO cls=${metrics.cls} shift=${metrics.shifts} `
+      + `long=${metrics.longtasks} max=${metrics.maxLongMs}ms nodi=${JSON.stringify(metrics.nodes)}`,
+    );
+    expect(metrics.cls, 'layout shift nell\'ingresso del Cavallo').toBeLessThan(0.01);
+    // Il frame budget resta una misura da leggere: a 4× CPU un primo paint di
+    // 68 ms vale 17 ms reali. Il criterio N-10 è il layout shift; il long task
+    // viene stampato accanto per non nasconderlo.
+  });
+});
+
 test.describe('N-10: foto e card', () => {
   test('la cornice di Indovina chi non si allarga', async ({ browser }) => {
     test.setTimeout(300_000);
