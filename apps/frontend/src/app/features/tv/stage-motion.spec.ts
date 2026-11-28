@@ -9,7 +9,8 @@ import { describe, expect, it } from 'vitest';
  *
  * 1. `question-area` è centrata con `transform: translateY(-50%)`. Un'animazione
  *    di ingresso che scrive `transform` cancella quel centraggio: la scena nasce
- *    più in basso e al cambio di fase torna al suo posto con uno scatto.
+ *    più in basso e al cambio di fase torna al suo posto con uno scatto. Per
+ *    questo l'entrata ora è solo opacità: niente translate, scale o pop.
  * 2. La fase `options` animava `question-area > *`, cioè la categoria, la barra
  *    del tempo e l'intero gioco: a ogni passaggio il timer spariva 300 ms e la
  *    domanda 600 ms, poi rientravano sfalsate.
@@ -24,11 +25,11 @@ function keyframes(name: string): string {
 }
 
 describe('TV — ingresso della scena', () => {
-  it('l’entrata non tocca il transform che centra la domanda', () => {
+  it('l’entrata è solo dissolvenza, senza movimenti', () => {
     for (const name of ['stageIn', 'stageOut']) {
       const block = keyframes(name);
-      expect(block, `${name} scrive transform`).not.toContain('transform');
-      expect(block, `${name} usa la traslazione composta`).toContain('translate');
+      expect(block, `${name} muove la scena`).not.toMatch(/transform|translate|scale/);
+      expect(block, `${name} non è una dissolvenza`).toContain('opacity');
     }
   });
 

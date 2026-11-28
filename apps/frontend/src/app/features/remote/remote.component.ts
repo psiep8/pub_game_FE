@@ -153,7 +153,7 @@ const QUIZ_CHECK_TIMEOUT_MS = 8000;
     .casino-cards { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
     .casino-card {
       display: inline-grid; place-items: center; min-width: 38px; height: 50px; padding: 0 4px;
-      background: var(--paper); color: var(--coal); border: 2px solid var(--coal);
+      background: var(--paper); color: var(--coal); border: 3px solid var(--coal);
       font-family: var(--font-mono); font-weight: 800;
     }
     .casino-card.red { color: var(--tomato); }

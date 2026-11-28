@@ -155,48 +155,9 @@
   z-index: 2;
 }
 
-.move-in .team-dot {
-  animation: flash-green 1s ease-out forwards;
-}
-
+.move-in .team-dot,
 .move-out .team-dot {
-  animation: flash-red 1s ease-out forwards;
-}
-
-@keyframes flash-green {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
-  }
-
-  50% {
-    transform: scale(1.4);
-    box-shadow: 0 0 30px #4caf50, 0 0 50px #4caf50;
-    border-color: #ffffff;
-  }
-
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
-  }
-}
-
-@keyframes flash-red {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
-  }
-
-  50% {
-    transform: scale(0.8);
-    box-shadow: 0 0 30px #f44336, 0 0 50px #f44336;
-    border-color: #ffffff;
-  }
-
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
-  }
+  animation: none;
 }
 
 .movement-indicator {
@@ -275,19 +236,7 @@
   inset: -5px;
   border-radius: 50%;
   border: 2px solid #4caf50;
-  animation: pulse-happy 1s infinite alternate;
-}
-
-@keyframes pulse-happy {
-  from {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-
-  to {
-    transform: scale(1.3);
-    opacity: 0;
-  }
+  animation: none;
 }
 
 .team-label {
@@ -348,7 +297,7 @@
   color: #FFD700;
   margin-bottom: clamp(20px, 4vh, 50px);
   text-shadow: 0 0 40px rgba(255, 215, 0, 0.7);
-  animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: m-fade var(--motion-base) var(--ease-out) backwards;
 }
 
 .survivors-list {
@@ -368,9 +317,9 @@
   border-radius: 20px;
   border: 2px solid rgba(255, 255, 255, 0.2);
   min-width: min(80vw, 400px);
-  animation: slide-up 0.5s ease-out forwards;
+  animation: m-fade 0.5s ease-out forwards;
   opacity: 0;
-  transform: translateY(30px);
+  transform: none;
 }
 
 .survivor .medal {
@@ -402,21 +351,3 @@
   animation-delay: 0.5s;
 }
 
-@keyframes pop-in {
-  from {
-    transform: scale(0.5);
-    opacity: 0;
-  }
-
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes slide-up {
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}

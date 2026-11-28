@@ -1,15 +1,16 @@
 /**
  * Mappa delle carte napoletane.
  *
- * <p>I file sono il set CC0 `SONDLecT/woodcut-napoletane` (40 carte + dorso),
- * copiati in `public/assets/carte-napoletane` dallo script
+ * <p>I file sono il set CC0 `SONDLecT/woodcut-napoletane`: 40 facce a colori
+ * (`colori/`) e il dorso a inchiostro bianco/nero (`dorso.svg`), copiati in
+ * `public/assets/carte-napoletane` dallo script
  * `scripts/carte/scarica-napoletane.mjs`. La mappa è l'unico punto che lega un
  * id di regola (`ASSO-DENARI`) al disegno: per cambiare mazzo basta cambiare
  * file e mappa, non il codice del tavolo.</p>
  */
 
-export const CARTE_BASE = 'assets/carte-napoletane/';
-export const CARTE_DORSO = `${CARTE_BASE}dorso.svg`;
+export const CARTE_BASE = 'assets/carte-napoletane/colori/';
+export const CARTE_DORSO = 'assets/carte-napoletane/dorso.svg';
 
 const SUITS = [
   { id: 'DENARI', slug: 'denari', label: 'denari' },

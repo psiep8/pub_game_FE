@@ -239,7 +239,7 @@
   border: 3px solid var(--coal);
   border-radius: 0;
   box-shadow: 7px 7px 0 var(--tomato);
-  animation: slide-up 0.5s var(--ease-out);
+  animation: quiz-fade-in 0.5s var(--ease-out) both;
 }
 
 .quiz-reveal .reveal-label {
@@ -260,17 +260,6 @@
 }
 
 
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
 
 
 @media (max-width: 600px) {

@@ -702,8 +702,8 @@ app-image-blur .blur-main-container .blur-img {
 /* ============================================================
    SISTEMA DI MOTION — token, utility, transizioni di pagina.
    Stile e tema non cambiano: qui si decide solo come si muovono
-   le cose. Solo transform e opacity, niente animazioni su
-   proprietà che forzano layout o repaint continui.
+   le cose. Solo opacità: nessun salto di scala o posizione, niente
+   animazioni che forzano layout o repaint continui.
    Fill-mode "backwards": a fine animazione la proprietà torna
    al CSS dell'elemento, così hover e :active restano intatti.
    ============================================================ */
@@ -722,39 +722,14 @@ app-image-blur .blur-main-container .blur-img {
 
 @keyframes m-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes m-appear { from { opacity: 0; } to { opacity: 1; } }
-@keyframes m-rise {
-  from { opacity: 0; transform: translate3d(0, 18px, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
-}
-@keyframes m-drop {
-  from { opacity: 0; transform: translate3d(0, -18px, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
-}
-@keyframes m-slide-right {
-  from { opacity: 0; transform: translate3d(-36px, 0, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
-}
-@keyframes m-slide-left {
-  from { opacity: 0; transform: translate3d(36px, 0, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
-}
-@keyframes m-zoom-in {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
-@keyframes m-zoom-out {
-  from { opacity: 0; transform: scale(1.12); }
-  to { opacity: 1; transform: scale(1); }
-}
-@keyframes m-pop {
-  0% { opacity: 0; transform: scale(0.78); }
-  62% { opacity: 1; transform: scale(1.04); }
-  100% { opacity: 1; transform: scale(1); }
-}
-@keyframes m-page-in {
-  from { opacity: 0; transform: translate3d(0, 12px, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
-}
+@keyframes m-rise { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-drop { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-slide-right { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-slide-left { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-zoom-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-zoom-out { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-pop { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-page-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes m-bump {
   0% { transform: scale(1); }
   38% { transform: scale(1.14); }
@@ -808,8 +783,8 @@ app-game-component .question-category { animation: m-drop var(--motion-fast) var
 
 app-game-component .result-popup { animation: m-pop var(--motion-fast) var(--ease-spring) backwards; }
 app-game-component .result-popup .result-icon { animation: m-pop var(--motion-base) var(--ease-spring) 60ms backwards; }
-app-game-component .result-popup .result-points { animation: m-bump var(--motion-base) var(--ease-spring) 160ms backwards; }
-app-game-component .result-popup.wrong { animation: m-pop var(--motion-fast) var(--ease-spring) backwards, m-shake var(--motion-base) var(--ease-in-out) 160ms backwards; }
+app-game-component .result-popup .result-points { animation: m-fade var(--motion-base) var(--ease-out) 160ms backwards; }
+app-game-component .result-popup.wrong { animation: m-fade var(--motion-fast) var(--ease-out) backwards; }
 
 app-game-component .recent-item { animation: m-appear var(--motion-fast) var(--ease-out) backwards; }
 
@@ -901,10 +876,10 @@ app-timeline .tl-card:nth-child(4) { animation-delay: 180ms; }
 
 app-arena .team-node { animation: m-appear var(--motion-base) var(--ease-out) backwards; }
 
-app-leaderboard-quick .position-badge { animation: m-bump var(--motion-base) var(--ease-spring) backwards; }
-app-leaderboard-quick .points-value { animation: m-pop var(--motion-base) var(--ease-spring) 80ms backwards; }
-app-leaderboard-detailed .position-number { animation: m-bump var(--motion-base) var(--ease-spring) backwards; }
-app-leaderboard-detailed .points-value { animation: m-pop var(--motion-base) var(--ease-spring) 100ms backwards; }
+app-leaderboard-quick .position-badge { animation: m-fade var(--motion-base) var(--ease-out) backwards; }
+app-leaderboard-quick .points-value { animation: m-fade var(--motion-base) var(--ease-out) 80ms backwards; }
+app-leaderboard-detailed .position-number { animation: m-fade var(--motion-base) var(--ease-out) backwards; }
+app-leaderboard-detailed .points-value { animation: m-fade var(--motion-base) var(--ease-out) 100ms backwards; }
 app-remote-component .buzz-button,
 app-remote-component .speed-big,
 app-remote-component .confirm-btn,

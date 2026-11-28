@@ -292,7 +292,7 @@ import { CommonModule } from '@angular/common';
     }
     .tb-goal-word { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.6rem, 2.8vw, 2.4rem); line-height: 1; letter-spacing: .06em; }
     .tb-goal-name { font-family: var(--font-mono); font-size: clamp(.7rem, 1vw, .95rem); letter-spacing: .12em; text-transform: uppercase; }
-    @keyframes tbGoal { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes tbGoal { from { opacity: 0; } to { opacity: 1; } }
 
     .tb-question { flex: 0 0 auto; min-height: clamp(64px, 9vh, 88px); display: flex; flex-direction: column; gap: clamp(6px, .8vh, 10px); justify-content: center; }
     .tb-q-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }

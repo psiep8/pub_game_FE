@@ -28,7 +28,7 @@
   height: 10px;
   background: white;
   border-radius: 50%;
-  animation: float 3s infinite;
+  animation: none;
 }
 
 .particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
@@ -39,11 +39,6 @@
 .particle:nth-child(6) { left: 30%; top: 80%; animation-delay: 2.5s; }
 .particle:nth-child(7) { left: 70%; top: 15%; animation-delay: 1.2s; }
 .particle:nth-child(8) { left: 40%; top: 50%; animation-delay: 0.8s; }
-
-@keyframes float {
-  0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
-  50% { transform: translateY(-30px) scale(1.5); opacity: 1; }
-}
 
 .crown-massive {
   position: absolute;
@@ -56,7 +51,7 @@
 .crown-inner {
   font-size: 160px;
   filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
-  animation: crownFloat 2s ease-in-out infinite;
+  animation: none;
 }
 
 .crown-glow {
@@ -64,17 +59,7 @@
   inset: -20px;
   background: radial-gradient(circle, rgba(255, 215, 0, 0.4), transparent);
   border-radius: 50%;
-  animation: pulse 2s infinite;
-}
-
-@keyframes crownFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.2); opacity: 1; }
+  animation: none;
 }
 
 .position-massive {
@@ -131,12 +116,7 @@
 
 .player-name-massive.top3 {
   font-size: 96px;
-  animation: nameGlow 2s infinite;
-}
-
-@keyframes nameGlow {
-  0%, 100% { text-shadow: 0 6px 30px rgba(0, 0, 0, 0.5); }
-  50% { text-shadow: 0 6px 50px rgba(255, 255, 255, 0.8); }
+  animation: none;
 }
 
 .points-showcase {
@@ -218,12 +198,7 @@
   left: 50%;
   transform: translateX(-50%);
   font-size: 180px;
-  animation: medalBounce 1.5s infinite;
-}
-
-@keyframes medalBounce {
-  0%, 100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
-  50% { transform: translateX(-50%) translateY(-30px) rotate(15deg); }
+  animation: none;
 }
 
 .reveal-progress {

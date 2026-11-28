@@ -186,7 +186,7 @@ import {
     .bj-label { font-family: var(--font-mono); font-size: clamp(.62rem, .9vw, .8rem); font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
     .bj-token { padding: 2px 8px; background: var(--mustard); border: 2px solid var(--coal); font-family: var(--font-mono); font-size: clamp(.55rem, .8vw, .7rem); font-weight: 800; letter-spacing: .1em; }
     .bj-cards { display: flex; gap: clamp(4px, .6vw, 10px); flex-wrap: wrap; justify-content: center; min-height: clamp(74px, 11vh, 118px); align-items: center; }
-    .bj-card { display: inline-flex; flex-direction: column; justify-content: space-between; width: clamp(54px, 5.6vw, 82px); height: clamp(74px, 8vw, 116px); padding: clamp(4px, .5vw, 8px); background: var(--paper-hi); color: var(--coal); border: 3px solid var(--coal); border-radius: 0; font-family: var(--font-mono); font-weight: 800; }
+    .bj-card { display: inline-flex; flex-direction: column; justify-content: space-between; width: clamp(54px, 5.6vw, 82px); height: clamp(74px, 8vw, 116px); padding: clamp(4px, .5vw, 8px); background: var(--paper-hi); color: var(--coal); border: 4px solid var(--coal); border-radius: 0; font-family: var(--font-mono); font-weight: 800; }
     .bj-card.red { color: var(--tomato); }
     .bj-card.back { align-items: center; justify-content: center; background: repeating-linear-gradient(45deg, var(--coal), var(--coal) 6px, #3b3b3b 6px, #3b3b3b 12px); color: var(--paper-hi); font-size: clamp(1.2rem, 2vw, 1.8rem); }
     .bj-card.picture { position: relative; padding: 0; overflow: hidden; }

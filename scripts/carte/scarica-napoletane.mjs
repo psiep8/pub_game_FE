@@ -2,23 +2,25 @@
 /**
  * Carte napoletane del Sette e Mezzo.
  *
- * Sorgente: SONDLecT/woodcut-napoletane, 40 carte + dorso in SVG, CC0 1.0.
- * Il set è tracciato da un mazzo stampato a Napoli nel 1902. La licenza è
- * verificata nel README del repository: CC0, riuso libero anche commerciale.
+ * Sorgente: SONDLecT/woodcut-napoletane, CC0 1.0.
+ * Facce: cartella `colori/` (40 carte a colori).
+ * Dorso: `cards/dorso.svg`, il dorso a inchiostro bianco/nero.
  *
  * Uso:
  *   node scripts/carte/scarica-napoletane.mjs          # scarica e scrive LICENZE.md
  *   node scripts/carte/scarica-napoletane.mjs --check  # verifica file e licenze
  */
-import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 const ROOT = process.cwd();
 const OUT = join(ROOT, 'apps/frontend/public/assets/carte-napoletane');
-const REPO = 'https://raw.githubusercontent.com/SONDLecT/woodcut-napoletane/master/cards';
+const REPO = 'https://raw.githubusercontent.com/SONDLecT/woodcut-napoletane/master';
 const PROJECT = 'https://github.com/SONDLecT/woodcut-napoletane';
 const AUTHOR = 'SONDLecT';
 const LICENSE = 'CC0 1.0 Universal (public domain dedication)';
+const FACE_SOURCE = 'colori';
+const BACK_SOURCE = 'cards';
 
 const SUITS = ['denari', 'coppe', 'spade', 'bastoni'];
 const RANKS = [
@@ -38,20 +40,28 @@ const FILES = [
   ...SUITS.flatMap((suit) => RANKS.map(([file, rank]) => ({
     file: `${suit}-${file}.svg`,
     label: `${rank} di ${suit}`,
+    source: FACE_SOURCE,
   }))),
-  { file: 'dorso.svg', label: 'dorso' },
+  { file: 'dorso.svg', label: 'dorso bianco/nero', source: BACK_SOURCE },
 ];
 
-const licenseRow = ({ file, label }) =>
-  `| \`${file}\` | ${label} | [${AUTHOR}](${PROJECT}) | ${LICENSE} | ${REPO}/${file} |`;
+/** Le vecchie facce a inchiostro restano solo come dorso: via dal set. */
+const KEYLINE_FACES = SUITS.flatMap((suit) => RANKS.map(([file]) => `${suit}-${file}.svg`));
+
+const destFor = ({ file, source }) =>
+  source === FACE_SOURCE ? join(OUT, FACE_SOURCE, file) : join(OUT, file);
+const urlFor = ({ file, source }) => `${REPO}/${source}/${file}`;
+const licensePath = (file, source) => `${source}/${file}`;
+const licenseRow = ({ file, label, source }) =>
+  `| \`${licensePath(file, source)}\` | ${label} | [${AUTHOR}](${PROJECT}) | ${LICENSE} | ${urlFor({ file, source })} |`;
 
 async function check() {
   const missing = [];
-  for (const { file } of FILES) {
+  for (const entry of FILES) {
     try {
-      await access(join(OUT, file));
+      await access(destFor(entry));
     } catch {
-      missing.push(file);
+      missing.push(licensePath(entry.file, entry.source));
     }
   }
   let license = '';
@@ -61,33 +71,37 @@ async function check() {
     missing.push('LICENZE.md');
   }
   const unlicensed = FILES
-    .map(({ file }) => file)
+    .map((entry) => licensePath(entry.file, entry.source))
     .filter((file) => !license.includes(`\`${file}\``));
   if (missing.length || unlicensed.length) {
     console.error('Carte mancanti:', missing.join(', ') || 'nessuna');
     console.error('File senza riga di licenza:', unlicensed.join(', ') || 'nessuno');
     process.exit(1);
   }
-  console.log(`OK: ${FILES.length} file (40 carte + dorso) e LICENZE.md verificati.`);
+  console.log(`OK: ${FILES.length} file (40 facce a colori + dorso) e LICENZE.md verificati.`);
 }
 
 async function download() {
-  await mkdir(OUT, { recursive: true });
-  for (const { file } of FILES) {
-    const response = await fetch(`${REPO}/${file}`);
-    if (!response.ok) throw new Error(`${file}: HTTP ${response.status}`);
+  await mkdir(join(OUT, FACE_SOURCE), { recursive: true });
+  for (const entry of FILES) {
+    const response = await fetch(urlFor(entry));
+    if (!response.ok) throw new Error(`${entry.file}: HTTP ${response.status}`);
     const body = Buffer.from(await response.arrayBuffer());
-    await writeFile(join(OUT, file), body);
-    console.log(`${file} (${Math.round(body.length / 1024)} KB)`);
+    await writeFile(destFor(entry), body);
+    console.log(`${licensePath(entry.file, entry.source)} (${Math.round(body.length / 1024)} KB)`);
+  }
+
+  for (const file of KEYLINE_FACES) {
+    await unlink(join(OUT, file)).catch(() => undefined);
   }
 
   const license = `# Carte napoletane — licenze
 
-Set: **40 carte + dorso**, disegni in SVG a inchiostro (\`cards/\`).
+Set: **40 facce a colori + dorso a inchiostro**.
 Sorgente: [${AUTHOR}/woodcut-napoletane](${PROJECT}).
 Autore: **${AUTHOR}** (tracciato da un mazzo stampato a Napoli nel 1902).
 Licenza: **${LICENSE}** — riuso, modifica e distribuzione liberi, anche commerciali.
-I file sono copiati senza modifiche dalla cartella \`cards/\` del repository.
+Le facce sono copiate senza modifiche da \`colori/\`; il dorso da \`cards/dorso.svg\`.
 
 | File | Carta | Autore | Licenza | URL |
 | --- | --- | --- | --- | --- |

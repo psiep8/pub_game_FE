@@ -935,7 +935,7 @@
   font-size: clamp(1.6rem, 3.4vw, 3rem);
   line-height: 1.05;
   text-transform: uppercase;
-  animation: slotRoll 0.45s ease-out;
+  animation: m-fade var(--motion-fast) var(--ease-out) backwards;
 }
 .slot-row.chosen {
   color: var(--coal);
@@ -944,7 +944,6 @@
   box-shadow: 9px 9px 0 var(--tomato);
   font-size: clamp(2rem, 4.6vw, 4.2rem);
 }
-@keyframes slotRoll { from { transform: translateY(-18px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 /* La categoria resta a schermo con lo stesso carattere del titolo domanda. */
 .question-category {
@@ -1358,7 +1357,7 @@
 
 /* ── Regia scenica: lettura, opzioni sfalsate, 3-2-1, entrata e uscita ────── */
 
-/* Uscita: dissolvenza e scorrimento breve (240 px), mai un taglio secco. */
+/* Uscita: sola dissolvenza, mai un taglio secco. */
 .game-container.stage-exit .question-area,
 .game-container.stage-exit .category-slot,
 .game-container.stage-exit .bubbles-area {
@@ -1410,31 +1409,14 @@
   color: var(--acid);
   -webkit-text-stroke: 4px var(--coal);
   text-shadow: 6px 6px 0 var(--coal);
-  animation: stageCountPulse 1s ease-in-out infinite;
+  animation: none;
 }
 
-/* `question-area` è centrata con `top: 50%` + `transform: translateY(-50%)`:
-   animare `transform` qui cancellava quel centraggio, così la scena nasceva più
-   in basso e al cambio di fase tornava a posto con un salto. Con `translate` e
-   `scale` (proprietà indipendenti) il centraggio resta intatto e si muove solo
-   quello che serve. */
-@keyframes stageIn {
-  from { opacity: 0; translate: 0 26px; scale: 0.992; }
-  to { opacity: 1; translate: 0 0; scale: 1; }
-}
-@keyframes stageOut {
-  from { opacity: 1; translate: 0 0; }
-  to { opacity: 0; translate: 0 -240px; }
-}
-@keyframes stageCardIn {
-  from { opacity: 0; transform: translateY(24px) rotate(-0.6deg); }
-  to { opacity: 1; transform: none; }
-}
-@keyframes stageCountPulse {
-  0% { transform: scale(0.92); opacity: 0.45; }
-  45% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(1.02); opacity: 0.95; }
-}
+/* La scena appare e scompare solo in dissolvenza: niente traslazioni,
+   scale o scatti, così centraggio e layout restano fermi. */
+@keyframes stageIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes stageOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes stageCardIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* Movimento ridotto: resta la dissolvenza, sparisce la corsa. */
 @media (prefers-reduced-motion: reduce) {

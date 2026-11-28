@@ -252,7 +252,7 @@ import { CommonModule } from '@angular/common';
     .az-bets { position: absolute; right: 8px; bottom: 6px; display: inline-flex; align-items: center; }
     .az-bets .az-fiche { width: clamp(20px, 1.5vw, 26px); }
     .az-bets .az-fiche + .az-fiche { margin-left: -10px; }
-    @keyframes az-chip-in { from { transform: translateY(-6px); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes az-chip-in { from { opacity: 0; } to { opacity: 1; } }
     .az-fiche { animation: az-chip-in 220ms ease-out both; }
     @media (prefers-reduced-motion: reduce) { .az-fiche { animation: none; } .az-timer.hot { animation: none; } }
     .az-value { padding: 6px 18px; background: var(--acid); color: var(--coal); border: 3px solid var(--coal); box-shadow: 5px 5px 0 var(--coal); font-family: var(--font-mono); font-size: clamp(.9rem, 1.4vw, 1.2rem); font-weight: 800; }
