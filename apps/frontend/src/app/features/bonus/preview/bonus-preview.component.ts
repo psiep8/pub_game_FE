@@ -3,12 +3,12 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
-import { BlackjackBonus } from '../blackjack/blackjack-bonus.component';
+import { SetteEMezzoBonus } from '../sette-e-mezzo/sette-e-mezzo-bonus.component';
 import { CasinoBonus } from '../casino/casino-bonus.component';
 import { CavalloBonus } from '../cavallo/cavallo-bonus.component';
 import { KaraokeBonus } from '../karaoke/karaoke-bonus.component';
 
-type PreviewKind = 'karaoke' | 'blackjack' | 'casino5' | 'cavallo' | 'numero';
+type PreviewKind = 'karaoke' | 'sette' | 'casino5' | 'cavallo' | 'numero';
 
 interface PreviewCard {
   id: PreviewKind;
@@ -28,11 +28,11 @@ const PREVIEW_CARDS: PreviewCard[] = [
     note: 'La clip si ferma senza preavviso: il primo tavolo che prenota canta le frasi successive al microfono fisico.',
   },
   {
-    id: 'blackjack',
+    id: 'sette',
     icon: '🃏',
-    title: 'BLACKJACK',
+    title: 'SETTE E MEZZO',
     subtitle: 'UN TURNO PER TAVOLO',
-    note: 'La TV fa il banco, i tavoli scelgono carta o stai. Vittoria 150, pari 75.',
+    note: 'La TV fa il banco, i tavoli scelgono carta o stai: vince chi si avvicina di più a 7,5 senza sballare. Premio del bar, nessun punto.',
   },
   {
     id: 'casino5',
@@ -62,7 +62,7 @@ const PREVIEW_TYPES: readonly PreviewKind[] = PREVIEW_CARDS.map((card) => card.i
 @Component({
   selector: 'app-bonus-preview',
   standalone: true,
-  imports: [CommonModule, RouterLink, BlackjackBonus, CasinoBonus, CavalloBonus, KaraokeBonus],
+  imports: [CommonModule, RouterLink, SetteEMezzoBonus, CasinoBonus, CavalloBonus, KaraokeBonus],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (!kind()) {
@@ -121,8 +121,8 @@ const PREVIEW_TYPES: readonly PreviewKind[] = PREVIEW_CARDS.map((card) => card.i
         @case ('numero') {
           <app-casino-bonus [gameId]="1" [players]="players" [preview]="true" [variant]="'NUMBER'" />
         }
-        @case ('blackjack') {
-          <app-blackjack-bonus [gameId]="1" [players]="players" [preview]="true" />
+        @case ('sette') {
+          <app-sette-e-mezzo-bonus [gameId]="1" [players]="players" [preview]="true" />
         }
         @case ('cavallo') {
           <app-cavallo-bonus [gameId]="1" [players]="players" [categories]="categories" [preview]="true" />

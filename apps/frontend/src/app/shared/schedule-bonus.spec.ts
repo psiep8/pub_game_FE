@@ -12,7 +12,7 @@ describe('scaletta dei cinque bonus', () => {
   it('mette un bonus diverso dopo ognuno dei cinque atti', () => {
     expect(BONUS_TYPES).toEqual([
       'KARAOKE',
-      'BLACKJACK',
+      'SETTE_E_MEZZO',
       'CASINO_FIVE',
       'CAVALLO',
       'CASINO_NUMBER',

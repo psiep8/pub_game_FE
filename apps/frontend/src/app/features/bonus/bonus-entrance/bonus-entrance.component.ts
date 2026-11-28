@@ -49,7 +49,7 @@ import type { BonusEntranceEntry } from '../../../shared/bonus-entrances';
       --be-accent: var(--paper-hi);
     }
     .be-KARAOKE { --be-accent: var(--tomato); }
-    .be-BLACKJACK { --be-accent: var(--mustard); }
+    .be-SETTE_E_MEZZO { --be-accent: var(--mustard); }
     .be-CASINO_FIVE { --be-accent: var(--acid); }
     .be-CAVALLO { --be-accent: var(--paper-hi); }
     .be-CASINO_NUMBER { --be-accent: var(--mustard); background: #070706; }
@@ -75,7 +75,7 @@ import type { BonusEntranceEntry } from '../../../shared/bonus-entrances';
     }
     .be-CASINO_FIVE .be-beam { animation-duration: 3.2s; }
     .be-CASINO_NUMBER .be-beam { animation-duration: 4.2s; opacity: .5; }
-    .be-BLACKJACK .be-beam { animation-duration: 3.8s; }
+    .be-SETTE_E_MEZZO .be-beam { animation-duration: 3.8s; }
     .be-CAVALLO .be-beam { animation-duration: 1.8s; }
 
     .be-alarm {
@@ -91,7 +91,7 @@ import type { BonusEntranceEntry } from '../../../shared/bonus-entrances';
       pointer-events: none;
     }
     .be-CASINO_FIVE .be-alarm { opacity: .7; animation-duration: 1.1s; }
-    .be-BLACKJACK .be-alarm { opacity: .35; }
+    .be-SETTE_E_MEZZO .be-alarm { opacity: .35; }
 
     .be-shock { animation: be-shock 2.6s cubic-bezier(.2, .8, .2, 1) both; }
     .be-CAVALLO .be-shock { animation-duration: 1.2s; }
@@ -196,7 +196,7 @@ export class BonusEntrance {
   icon(): string {
     if (this.entry?.icon) return this.entry.icon;
     switch (this.type) {
-      case 'BLACKJACK': return '🃏';
+      case 'SETTE_E_MEZZO': return '🃏';
       case 'CASINO_FIVE': return '🎰';
       case 'CAVALLO': return '🐎';
       case 'CASINO_NUMBER': return '🎯';
@@ -207,7 +207,7 @@ export class BonusEntrance {
   kicker(): string {
     if (this.entry?.kicker) return this.entry.kicker;
     switch (this.type) {
-      case 'BLACKJACK': return 'IL BANCO SI APRE';
+      case 'SETTE_E_MEZZO': return 'IL BANCO SI APRE';
       case 'CASINO_FIVE': return 'CINQUE GIRI, UN TAVOLO';
       case 'CAVALLO': return 'AI CANCELLI';
       case 'CASINO_NUMBER': return 'ULTIMO GIRO';
@@ -217,7 +217,7 @@ export class BonusEntrance {
 
   heading(): string {
     switch (this.type) {
-      case 'BLACKJACK': return 'BLACKJACK';
+      case 'SETTE_E_MEZZO': return 'SETTE E MEZZO';
       case 'CASINO_FIVE': return 'CINQUE MANCHE';
       case 'CAVALLO': return 'CAVALLO DI BATTAGLIA';
       case 'CASINO_NUMBER': return 'UN NUMERO, TUTTO';
@@ -227,7 +227,7 @@ export class BonusEntrance {
 
   sub(): string {
     switch (this.type) {
-      case 'BLACKJACK': return 'Un turno per tavolo, dal fondo della classifica: il banco si ferma a 17.';
+      case 'SETTE_E_MEZZO': return 'Un turno per tavolo, dal fondo della classifica: il banco pesca fino a 7,25 e vince i pareggi.';
       case 'CASINO_FIVE': return 'Cinque manche, una girata ciascuna: colore, dozzina, parità, alto/basso, numero.';
       case 'CAVALLO': return 'Otto domande, un podio: il premio lo consegnano barista e presentatore.';
       case 'CASINO_NUMBER': return 'La finale: una pallina, trentasette caselle, 1000 punti sul numero esatto.';
@@ -237,7 +237,7 @@ export class BonusEntrance {
 
   rule(): string {
     switch (this.type) {
-      case 'BLACKJACK': return 'VITTORIA: PREMIO DEL BAR · SCONFITTA 0';
+      case 'SETTE_E_MEZZO': return 'VITTORIA: PREMIO DEL BAR · SCONFITTA 0';
       case 'CASINO_FIVE': return '100 · 200 · 100 · 100 · 1000';
       case 'CAVALLO': return 'PREMIO DEL BAR AL VINCITORE';
       case 'CASINO_NUMBER': return 'NUMERO ESATTO +1000';

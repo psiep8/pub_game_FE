@@ -404,16 +404,20 @@ const BONUS_COPY: Record<BonusType, DemoCopy> = {
     lose: ['Sbagliato: 0 punti e altra squadra al microfono.', 'Nessun malus.'],
     example: `Prima canzone giusta: +${BONUS_KARAOKE_MANCHE_POINTS[0]}; ultima: +${BONUS_KARAOKE_MANCHE_POINTS[4]}. La regia ha ${BONUS_KARAOKE_BUZZ_SECONDS} secondi per il verdetto.`,
   },
-  BLACKJACK: {
-    title: 'BLACKJACK',
+  SETTE_E_MEZZO: {
+    title: 'SETTE E MEZZO',
     icon: '🃏',
     objective: [
       'Un turno per tavolo contro il banco della TV.',
-      'Il banco si ferma a 17; il naturale batte tutto.',
+      'Il banco pesca fino a 7,25 e vince i pareggi; il naturale (7 + figura) batte tutto.',
     ],
-    phone: ['Quando la TV chiama il tuo tavolo scegli CARTA o STAI.', 'La TV apre il banco alla fine.'],
+    phone: [
+      'Quando la TV chiama il tuo tavolo scegli CARTA o STAI.',
+      'Il Re di denari è la matta: vale 1 o 0,5 nel modo migliore, senza sballare.',
+      'La TV apre il banco alla fine della mano.',
+    ],
     win: ['Chi batte il banco riceve il premio concordato con il bar, non punti.', 'Premio e consegna li gestiscono barista e presentatore.'],
-    lose: ['Pari e sconfitte non tolgono nulla.', 'Sballare non costa nulla in classifica.'],
+    lose: ['Sconfitte e pareggi non tolgono nulla.', 'Sballare non costa nulla in classifica.'],
     example: 'Due tavoli battono il banco: il premio lo consegnano barista e presentatore.',
   },
   CASINO_FIVE: {

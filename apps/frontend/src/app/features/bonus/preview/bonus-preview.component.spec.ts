@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
-import { BlackjackBonus } from '../blackjack/blackjack-bonus.component';
+import { SetteEMezzoBonus } from '../sette-e-mezzo/sette-e-mezzo-bonus.component';
 import { CasinoBonus } from '../casino/casino-bonus.component';
 import { CavalloBonus } from '../cavallo/cavallo-bonus.component';
 import { KaraokeBonus } from '../karaoke/karaoke-bonus.component';
@@ -18,8 +18,8 @@ class CasinoStub {
   @Input() variant: 'FIVE' | 'NUMBER' | 'COLOR' | 'DOZEN' = 'FIVE';
 }
 
-@Component({ standalone: true, selector: 'app-blackjack-bonus', template: '' })
-class BlackjackStub {
+@Component({ standalone: true, selector: 'app-sette-e-mezzo-bonus', template: '' })
+class SetteStub {
   @Input() gameId = 1;
   @Input() players: string[] = [];
   @Input() preview = false;
@@ -60,8 +60,8 @@ describe('BonusPreview — il banco di prova dei cinque bonus', () => {
       ],
     });
     TestBed.overrideComponent(BonusPreview, {
-      remove: { imports: [BlackjackBonus, CasinoBonus, CavalloBonus, KaraokeBonus] },
-      add: { imports: [BlackjackStub, CasinoStub, CavalloStub, KaraokeStub] },
+      remove: { imports: [SetteEMezzoBonus, CasinoBonus, CavalloBonus, KaraokeBonus] },
+      add: { imports: [SetteStub, CasinoStub, CavalloStub, KaraokeStub] },
     });
     const fixture = TestBed.createComponent(BonusPreview);
     fixture.detectChanges();
@@ -80,14 +80,14 @@ describe('BonusPreview — il banco di prova dei cinque bonus', () => {
 
     expect(component.cards.map((card) => card.id)).toEqual([
       'karaoke',
-      'blackjack',
+      'sette',
       'casino5',
       'cavallo',
       'numero',
     ]);
     expect(component.cards.map((card) => card.title)).toEqual([
       'KARAOKE',
-      'BLACKJACK',
+      'SETTE E MEZZO',
       'CASINO 5 MANCHE',
       'CAVALLO',
       'CASINO NUMERO SECCO',
@@ -99,7 +99,7 @@ describe('BonusPreview — il banco di prova dei cinque bonus', () => {
     expect(links).toHaveLength(5);
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
       '/bonus-preview/karaoke',
-      '/bonus-preview/blackjack',
+      '/bonus-preview/sette',
       '/bonus-preview/casino5',
       '/bonus-preview/cavallo',
       '/bonus-preview/numero',
@@ -134,13 +134,13 @@ describe('BonusPreview — il banco di prova dei cinque bonus', () => {
     expect(casino(fixture)?.variant).toBe('NUMBER');
   });
 
-  it('apre il blackjack con i tavoli demo', () => {
-    const fixture = mount('blackjack');
-    const blackjack = fixture.debugElement.query(By.directive(BlackjackStub))
-      ?.componentInstance as BlackjackStub | undefined;
+  it('apre il Sette e Mezzo con i tavoli demo', () => {
+    const fixture = mount('sette');
+    const sette = fixture.debugElement.query(By.directive(SetteStub))
+      ?.componentInstance as SetteStub | undefined;
 
-    expect(blackjack?.preview).toBe(true);
-    expect(blackjack?.players.length).toBeGreaterThan(0);
+    expect(sette?.preview).toBe(true);
+    expect(sette?.players.length).toBeGreaterThan(0);
     expect(casino(fixture)).toBeUndefined();
   });
 
@@ -154,7 +154,7 @@ describe('BonusPreview — il banco di prova dei cinque bonus', () => {
   });
 
   it('?giocatori=3 limita i tavoli del banco di prova', () => {
-    const fixture = mount('blackjack', '?giocatori=3');
+    const fixture = mount('sette', '?giocatori=3');
 
     expect(fixture.componentInstance.players).toEqual(['Anna', 'Luca', 'Marco']);
   });

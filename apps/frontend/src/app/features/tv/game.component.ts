@@ -91,7 +91,7 @@ const ROUND_STATE_ACTIONS: Partial<Record<GameModeType, WsAction>> = {
 /** Stato del bonus: Casino 5 manche e numero secco condividono la stessa ruota. */
 const BONUS_STATE_ACTIONS: Record<BonusType, WsAction> = {
   KARAOKE: WsAction.KARAOKE_STATE,
-  BLACKJACK: WsAction.BLACKJACK_STATE,
+  SETTE_E_MEZZO: WsAction.BLACKJACK_STATE,
   CASINO_FIVE: WsAction.CASINO_STATE,
   CAVALLO: WsAction.CAVALLO_STATE,
   CASINO_NUMBER: WsAction.CASINO_STATE,
@@ -101,7 +101,7 @@ import { KaraokeService, type KaraokeStatus } from '../bonus/karaoke/karaoke.ser
 import { KaraokeBonus } from '../bonus/karaoke/karaoke-bonus.component';
 import { CavalloBonus } from '../bonus/cavallo/cavallo-bonus.component';
 import { Biglie } from '../games/biglie/biglie.component';
-import { BlackjackBonus } from '../bonus/blackjack/blackjack-bonus.component';
+import { SetteEMezzoBonus } from '../bonus/sette-e-mezzo/sette-e-mezzo-bonus.component';
 import { BonusEntrance } from '../bonus/bonus-entrance/bonus-entrance.component';
 import { CASINO_BONUS_TYPES } from '../../shared/models/bonus-type';
 
@@ -156,7 +156,7 @@ const MUSIC_THEME_LAYOUT = [
     KaraokeBonus,
     CavalloBonus,
     Biglie,
-    BlackjackBonus,
+    SetteEMezzoBonus,
     BonusEntrance,
     AliveDirective
   ],
@@ -3082,13 +3082,13 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Il Blackjack bonus riusa il tavolo della TV e lo stato BLACKJACK_STATE:
+    // Il bonus Sette e Mezzo riusa il tavolo della TV e lo stato BLACKJACK_STATE:
     // un solo turno per tavolo, dal fondo della classifica.
-    if (type === 'BLACKJACK') {
-      const publicPayload = JSON.stringify({ type: 'BLACKJACK', question: BONUS_LABELS[type] });
+    if (type === 'SETTE_E_MEZZO') {
+      const publicPayload = JSON.stringify({ type: 'SETTE_E_MEZZO', question: BONUS_LABELS[type] });
       this.ws.broadcastStatus(this.currentGameId(), {
         action: WsAction.SHOW_QUESTION,
-        type: 'BLACKJACK',
+        type: 'SETTE_E_MEZZO',
         payload: publicPayload,
         rawPayload: publicPayload,
       });
@@ -3217,8 +3217,8 @@ export class GameComponent implements OnInit, OnDestroy {
       this.markBonusAct(closed, 'CLOSED');
       // Pagato: nemmeno uno snapshot vecchio deve riaprirlo.
       this.rememberClosedBonus(this.currentGameId(), this.roundManager.bonusActIndex());
-      // La mano del Blackjack bonus non deve tornare sul tavolo chiuso.
-      if (closed === 'BLACKJACK') this.reliability.saveBlackjackState(null);
+      // La mano del Sette e Mezzo non deve tornare sul tavolo chiuso.
+      if (closed === 'SETTE_E_MEZZO') this.reliability.saveBlackjackState(null);
     }
     this.bonusResume.set(null);
 
@@ -3269,8 +3269,8 @@ export class GameComponent implements OnInit, OnDestroy {
     }, summaryMs);
   }
 
-  /** La mano del Blackjack bonus vive sul server: un refresh non la perde. */
-  onBlackjackBonusCheckpoint(state: any): void {
+  /** La mano del Sette e Mezzo vive sul server: un refresh non la perde. */
+  onSetteEMezzoBonusCheckpoint(state: any): void {
     if (!state) return;
     this.reliability.saveBlackjackState(state);
   }
@@ -3305,7 +3305,7 @@ export class GameComponent implements OnInit, OnDestroy {
     const checkpoint = snapshot?.tvCheckpoint;
     const mode = String(checkpoint?.mode ?? '');
     const resume = checkpoint?.state && mode.startsWith('BONUS_') ? checkpoint.state : null;
-    // Il Blackjack bonus non usa il checkpoint TV: riprende la mano del server.
+    // Il Sette e Mezzo non usa il checkpoint TV: riprende la mano del server.
     const blackjackHand = snapshot?.blackjackState ?? null;
 
     let type: BonusType | null = null;
@@ -3314,14 +3314,14 @@ export class GameComponent implements OnInit, OnDestroy {
       type = this.serverBonus.type as BonusType;
     } else if (resume) {
       // Senza il segno sul server vale il checkpoint TV, ma solo per i bonus
-      // che sanno riprendere da lì: Casino e Karaoke. Cavallo e Blackjack no.
+      // che sanno riprendere da lì: Casino e Karaoke. Cavallo e Sette no.
       const fromCheckpoint = mode.slice('BONUS_'.length) as BonusType;
       if (fromCheckpoint === 'KARAOKE' || CASINO_BONUS_TYPES.includes(fromCheckpoint)) type = fromCheckpoint;
     }
     if (!type) return;
     const state = resume && mode === `BONUS_${type}`
       ? resume
-      : (type === 'BLACKJACK' ? blackjackHand : null);
+      : (type === 'SETTE_E_MEZZO' ? blackjackHand : null);
     // La pausa era nella sala al momento del refresh: si torna con la sala ferma.
     if (snapshot?.paused === true || state?.paused === true) this.isPaused.set(true);
     void this.startBonus(type, state);

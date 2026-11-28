@@ -48,8 +48,8 @@ scadenza e blocco dopo cinque errori).
 | N-07 — Tick infinito | **Da fare** | Il controllo dei proprietari audio (`AudioChannels.setOwner`) spegne già i loop della scena uscente; non è stata trovata una causa riproducibile senza la serata. |
 | N-08 — Vibrazione e fallback iPhone | **Fatto** | Se `navigator.vibrate` manca o è negata, il via accende un flash e un colpo breve; `BONUS_STARTED` usa lo stesso percorso. |
 | N-09 — Karaoke: controlli e demo | **Parziale** | Aggiunto `npm run check:karaoke` (banca, clip, testi e almeno 5 manche complete). Restano banner di conteggio nella lobby e prova completa con `?karaoke-demo=1`. |
-| N-10…N-15 (blocco B) | **Fatto** | N-10 chiuso sul layout shift (0 in tutte le misure); il budget frame resta misurato e documentato, non bloccante. N-11…N-14 fatti; N-15 fatto (flash, storico, film, statistiche). Selfie/poster in N-33. |
-| N-16…N-48 (blocco C) | **Parziale** | N-16 fatto: riepilogo a punti e TV con le sole risposte esatte. Restano N-17…N-48; D2 (Timeline e gioco che la sostituisce nell'atto 1) **non toccata**: serve la scelta del committente. |
+| N-10…N-15 (blocco B) | **Parziale** | N-10 **riaperto**: layout shift 0 in tutte le misure, ma l'asserzione dura `framesOver50 === 0` è tornata in `e2e/ingressi.spec.ts`; il budget frame (100 ms/1 in isolamento, 433 ms/27 nel flusso reale) non è chiuso. N-11…N-14 fatti; N-15 fatto (flash, storico, film, statistiche). Selfie/poster in N-33. |
+| N-16…N-48 (blocco C) | **Parziale** | N-16 fatto: riepilogo a punti e TV con le sole risposte esatte. Bonus: Sette e Mezzo 1v1 al posto del Blackjack in scaletta, telefoni e regia; il codice Blackjack resta ma è fuori dal flusso. Restano N-17…N-48; D2 (Timeline e gioco che la sostituisce nell'atto 1) **non toccata**: serve la scelta del committente. |
 | N-49…N-51 (blocco D) | **Da fare** | |
 | N-52…N-55 (blocco E) | **Da fare** | N-53 si ferma alla demo Quiz per approvazione. |
 
@@ -482,6 +482,33 @@ per squadra, non risposta per risposta. In TV il pannello «RISPOSTE ESATTE»
 filtra le sole risposte corrette: le errate non vanno più in onda e l'elenco
 resta leggibile con più di cinque squadre.
 
+### Bonus Sette e Mezzo al posto del Blackjack — **Fatto**
+
+Lo slot bonus dell'atto 2 non è più il Blackjack: `BONUS_TYPES` e
+`BONUS_AFTER_ACT` usano `SETTE_E_MEZZO`, la regia mostra «BONUS SETTE E MEZZO»,
+la TV usa il nuovo `SetteEMezzoBonus` e il telefono ha il caso
+`SETTE_E_MEZZO` con CARTA/STAI. La mano è 1v1: un tavolo alla volta, dal fondo
+della classifica, contro il banco che pesca fino a 7,25 e vince i pareggi; il
+Re di denari è la matta. Il bonus non assegna punti: premio del bar, sconfitte
+e pareggi a zero. Ingresso scenografico, manuale, punteggi, demo, anteprima e
+checkpoint di ripresa sono allineati.
+
+**Blackjack.** Il gioco (`features/games/blackjack`, `GameType.BLACKJACK`) e il
+vecchio `BlackjackBonus` restano in codice, con i loro test, ma non sono più
+raggiungibili dalla scaletta, dalla regia, dai telefoni o dall'anteprima. I
+canali `BLACKJACK_STATE`/`BLACKJACK_ACTION` e il blob `blackjack-hand` sono
+riusati internamente dal Sette e Mezzo per non cambiare il protocollo dei
+telefoni.
+
+**Nota.** `SPEC-SETTE-E-MEZZO-BONUS.md` non è presente nel repository: la
+sostituzione è stata fatta sulla specifica implicita del vecchio bonus 1v1 e
+sulle regole `sette-e-mezzo-rules.ts` già testate.
+
+**Test.** `sette-e-mezzo-rules.spec.ts` (14), `sette-e-mezzo-game.spec.ts`
+(8), nuovo `sette-e-mezzo-bonus.component.spec.ts` (ripresa, STAND da
+telefono, esito salvato), `game.component.spec.ts` e `remote.component.spec.ts`
+aggiornati. `ng build` verde.
+
 ### N-10 ingressi a scatti — **Misurato, correzioni da fare**
 
 **Banco.** `e2e/ingressi.spec.ts`: un gioco per caricamento, non un giro di
@@ -694,10 +721,12 @@ scarica o in CI. Non si dichiara chiuso un criterio che non è stato misurato.
 caricamento delle clip `atto-*.m4a`/`gioco-*.m4a` avvengono prima che la scena
 sia visibile; i long task da payload/rete non sono frame dell'ingresso.
 
-**Chiusura N-10.** Il criterio di accettazione della serata è il **layout shift
-0**, rispettato in tutte le misure. Il budget frame resta un numero noto (100
-ms/1 in isolamento, 433 ms/27 nel flusso reale sulla macchina carica) ed è
-tracciato nel log del banco: non è un'asserzione che blocca la suite.
+**N-10 resta aperto.** Il layout shift è 0 in tutte le misure, ma il criterio
+ha due metà: il budget frame **non** è chiuso (100 ms/1 in isolamento, 433 ms/27
+nel flusso reale sulla macchina carica). L'asserzione dura
+`expect(metrics.framesOver50).toBe(0)` è stata rimessa in
+`e2e/ingressi.spec.ts`: il banco resta rosso finché il budget non scende, non
+si chiude togliendo il controllo.
 
 **Isolamento (round finto, senza audio né payload).** `N-10 MUSIC isolata`, tre
 misure: `cls=0 long=0 frame=67ms/2`, `cls=0 long=1 max=168ms frame=167ms/2`

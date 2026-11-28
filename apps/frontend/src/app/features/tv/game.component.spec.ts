@@ -543,8 +543,8 @@ describe('GameComponent', () => {
 
   it('la pausa ferma l’ingresso a metà scena', async () => {
     component.currentGameId.set(1);
-    await component.startBonus('BLACKJACK');
-    expect(component.bonusEntrance()).toBe('BLACKJACK');
+    await component.startBonus('SETTE_E_MEZZO');
+    expect(component.bonusEntrance()).toBe('SETTE_E_MEZZO');
 
     component.isPaused.set(true);
     fixture.detectChanges();
@@ -552,12 +552,12 @@ describe('GameComponent', () => {
     // La pausa arriva all'ingresso: le animazioni vanno in `animation-play-state`.
     const entrance = fixture.debugElement.query(By.directive(BonusEntrance)).componentInstance as BonusEntrance;
     expect(entrance.paused).toBe(true);
-    expect(entrance.entry?.type).toBe('BLACKJACK');
+    expect(entrance.entry?.type).toBe('SETTE_E_MEZZO');
     const html = readFileSync('src/app/features/tv/game.component.html', 'utf8');
     expect(html).toContain('[paused]="isPaused()"');
   });
 
-  it('riapre il Blackjack bonus dalla mano salvata sul server', () => {
+  it('riapre il Sette e Mezzo bonus dalla mano salvata sul server', () => {
     const rounds = TestBed.inject(RoundManagerService);
     rounds.restoreRound(8);
     component.currentGameId.set(1);
@@ -574,12 +574,12 @@ describe('GameComponent', () => {
     const tv = component as unknown as { applyAuthoritativeState(snapshot: any): void };
     tv.applyAuthoritativeState({
       hasState: true, status: 'CREATED', roundIndex: 8,
-      bonusAct: { act: 0, type: 'BLACKJACK', status: 'STARTED' },
+      bonusAct: { act: 0, type: 'SETTE_E_MEZZO', status: 'STARTED' },
       blackjackState: hand,
     });
 
     expect(component.bonusResume()).toEqual(hand);
-    expect(component.bonusEntrance()).toBe('BLACKJACK');
+    expect(component.bonusEntrance()).toBe('SETTE_E_MEZZO');
   });
 
   it('riapre il bonus Cavallo dal checkpoint salvato', () => {
@@ -605,14 +605,14 @@ describe('GameComponent', () => {
     expect(component.bonusEntrance()).toBe('CAVALLO');
   });
 
-  it('salva la mano del Blackjack bonus e la cancella alla chiusura', () => {
-    const hand = { order: ['Anna'], index: 0, hand: ['A♥', 'K♥'], phase: 'DECIDE' };
-    component.onBlackjackBonusCheckpoint(hand);
+  it('salva la mano del Sette e Mezzo e la cancella alla chiusura', () => {
+    const hand = { order: ['Anna'], index: 0, hand: ['7-DENARI', 'RE-COPPE'], phase: 'DECIDE' };
+    component.onSetteEMezzoBonusCheckpoint(hand);
     expect(reliability.blackjackStates.at(-1)).toEqual(hand);
 
     component.bonusEntrance.set(null);
     component.bonusActive.set(true);
-    component.bonusType.set('BLACKJACK');
+    component.bonusType.set('SETTE_E_MEZZO');
     (component as unknown as { finishBonus(): void }).finishBonus();
 
     expect(reliability.blackjackStates.at(-1)).toBeNull();
@@ -2636,9 +2636,9 @@ describe('GameComponent', () => {
       expect(start).not.toHaveBeenCalled();
 
       // Round dello slot: il bonus parte da solo.
-      vi.mocked(rounds.bonusAfterRound).mockReturnValue('BLACKJACK');
+      vi.mocked(rounds.bonusAfterRound).mockReturnValue('SETTE_E_MEZZO');
       expect(scheduled(component).startScheduledBonus()).toBe(true);
-      expect(start).toHaveBeenCalledWith('BLACKJACK');
+      expect(start).toHaveBeenCalledWith('SETTE_E_MEZZO');
     });
 
     it('non avvia due volte lo stesso bonus', () => {
@@ -2707,7 +2707,7 @@ describe('GameComponent', () => {
 
     it('dopo un refresh non riapre un bonus già chiuso', () => {
       const rounds = TestBed.inject(RoundManagerService);
-      vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue('BLACKJACK');
+      vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue('SETTE_E_MEZZO');
       vi.spyOn(rounds, 'bonusActIndex').mockReturnValue(0);
       // La TV ricorda su disco i bonus pagati: è questa memoria che un refresh ritrova.
       localStorage.setItem('bonusClosed:1', JSON.stringify([0]));
@@ -2724,7 +2724,7 @@ describe('GameComponent', () => {
       localStorage.removeItem('bonusClosed:1');
       (fresh.componentInstance as unknown as { serverBonus: unknown }).serverBonus = {
         act: 0,
-        type: 'BLACKJACK',
+        type: 'SETTE_E_MEZZO',
         status: 'CLOSED',
       };
       expect(scheduled(fresh.componentInstance).startScheduledBonus()).toBe(false);
@@ -2742,8 +2742,8 @@ describe('GameComponent', () => {
         component.currentGameId.set(1);
         component.bonusEntrance.set(null);
         component.bonusActive.set(true);
-        component.bonusType.set('BLACKJACK');
-        vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue('BLACKJACK');
+        component.bonusType.set('SETTE_E_MEZZO');
+        vi.spyOn(rounds, 'bonusAfterRound').mockReturnValue('SETTE_E_MEZZO');
         vi.spyOn(rounds, 'bonusActIndex').mockReturnValue(0);
         vi.spyOn(rounds, 'shouldShowLeaderboard').mockReturnValue('QUICK');
 
@@ -2768,15 +2768,15 @@ describe('GameComponent', () => {
         component.currentGameId.set(1);
         component.bonusEntrance.set(null);
         component.bonusActive.set(true);
-        component.bonusType.set('BLACKJACK');
+        component.bonusType.set('SETTE_E_MEZZO');
 
         (component as unknown as { finishBonus(): void }).finishBonus();
         expect(component.bonusActive()).toBe(false);
         expect(component.bonusShowResult()).toBe(false);
         expect(rounds.getCurrentRound()).toBe(3);
 
-        // Il Blackjack non ha una classifica da mostrare: il conto alla rovescia
-        // parte subito, senza gli otto secondi di riepilogo del Casino.
+        // Il Sette e Mezzo non ha una classifica da mostrare: il conto alla
+        // rovescia parte subito, senza gli otto secondi del Casino.
         await vi.advanceTimersByTimeAsync(30_000);
 
         expect(rounds.getCurrentRound()).toBe(4);
@@ -2788,13 +2788,13 @@ describe('GameComponent', () => {
 
   describe('striscia di ripartenza dopo il bonus', () => {
     /** Porta la TV al riepilogo chiuso, quando parte il conto alla rovescia. */
-    function closeBonus(type: 'KARAOKE' | 'BLACKJACK' | 'CAVALLO' = 'KARAOKE'): void {
+    function closeBonus(type: 'KARAOKE' | 'SETTE_E_MEZZO' | 'CAVALLO' = 'KARAOKE'): void {
       TestBed.inject(RoundManagerService).restoreRound(3);
       component.currentGameId.set(1);
       component.bonusEntrance.set(null);
       component.bonusActive.set(true);
       component.bonusType.set(type);
-      // Il Casino ha una classifica da mostrare; Blackjack e Cavallo no.
+      // Il Casino ha una classifica da mostrare; Sette e Mezzo e Cavallo no.
       if (type === 'KARAOKE') component.onBonusResult({ playerName: 'Anna', score: 2 });
       (component as unknown as { finishBonus(): void }).finishBonus();
     }
@@ -2874,7 +2874,7 @@ describe('GameComponent', () => {
       }
     });
 
-    it.each(['BLACKJACK', 'CAVALLO'] as const)(
+    it.each(['SETTE_E_MEZZO', 'CAVALLO'] as const)(
       'chiude %s senza classifica vuota e riparte subito',
       async (type) => {
         vi.useFakeTimers();

@@ -501,13 +501,13 @@
         (result)="onBonusResult($event)"
         (finished)="finishBonus()" />
     }
-    @case ('BLACKJACK') {
-      <app-blackjack-bonus
+    @case ('SETTE_E_MEZZO') {
+      <app-sette-e-mezzo-bonus
         [gameId]="currentGameId()"
         [players]="bonusPlayers()"
         [resume]="bonusResume()"
         [paused]="isPaused()"
-        (checkpoint)="onBlackjackBonusCheckpoint($event)"
+        (checkpoint)="onSetteEMezzoBonusCheckpoint($event)"
         (finished)="finishBonus()" />
     }
     @case ('CAVALLO') {

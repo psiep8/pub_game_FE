@@ -14,6 +14,7 @@ function initialNicknameFromQuery(): string | null {
 }
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { shortRank, suitShort } from '../games/sette-e-mezzo/sette-e-mezzo-game';
 import { WebSocketService } from '../../core/websocket/web-socket.service';
 import { FormsModule } from '@angular/forms';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
@@ -248,7 +249,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
   startTime: number = 0;
 
   gameState = signal<PlayerStatus>(PlayerStatus.WAITING);
-  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'TENNIS_BATTLE' | 'CAVALLO' | 'ULTIMA_SPIAGGIA' | 'AZZARDO' | 'BLACKJACK' | 'BIGLIE' | 'BONUS_CASINO' | 'BONUS_KARAOKE' | 'BONUS_CAVALLO' | 'BONUS_BIGLIE'>('QUIZ');
+  questionType = signal<'QUIZ' | 'MUSIC' | 'IMAGE_BLUR' | 'WHEEL_OF_FORTUNE' | 'ARENA' | 'TIMELINE' | 'TIME_BUZZER' | 'BOMBA' | 'SPEED_RUSH' | 'TENNIS_BATTLE' | 'CAVALLO' | 'ULTIMA_SPIAGGIA' | 'AZZARDO' | 'BLACKJACK' | 'SETTE_E_MEZZO' | 'BIGLIE' | 'BONUS_CASINO' | 'BONUS_KARAOKE' | 'BONUS_CAVALLO' | 'BONUS_BIGLIE'>('QUIZ');
   hasAnswered = signal(false);
   /** Manche Quiz in corso e ultima manche già votata. */
   quizManche = signal(0);
@@ -717,7 +718,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
             }
           }
           this.isBlocked.set(false);
-          if (status.type === 'BLACKJACK') {
+          if (status.type === 'BLACKJACK' || status.type === 'SETTE_E_MEZZO') {
             this.blackjackState.set(null);
             this.blackjackStand.set(false);
             this.blackjackKey = '';
@@ -725,7 +726,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
           if (status.type === 'BONUS_CASINO' || status.type === 'BONUS_KARAOKE' || status.type === 'BONUS_CAVALLO'
               || status.type === 'BONUS_BIGLIE'
               || status.type === 'ULTIMA_SPIAGGIA' || status.type === 'AZZARDO' || status.type === 'CAVALLO'
-              || status.type === 'BLACKJACK') {
+              || status.type === 'BLACKJACK' || status.type === 'SETTE_E_MEZZO') {
             this.gameState.set(PlayerStatus.VOTING);
             this.hasAnswered.set(false);
             this.selectedAnswer.set(null);
@@ -1513,6 +1514,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
       CAVALLO: '🐎 Cavallo',
       BONUS_CASINO: '🎰 Roulette',
       BONUS_KARAOKE: '🎤 Karaoke',
+      SETTE_E_MEZZO: '🃏 Sette e Mezzo',
       BONUS_CAVALLO: '🐎 Cavallo',
       BONUS_BIGLIE: '🎱 Biglie',
     };
@@ -2250,7 +2252,9 @@ export class RemoteComponent implements OnInit, OnDestroy {
     if (!state || !player) return;
     if (state.phase !== 'DECIDE' || state.currentTable !== player) return;
     if (this.blackjackStand()) return;
-    if (kind === 'HIT' && Number(state.handTotal) >= 21) return;
+    // Il tavolo Blackjack si ferma a 21; il Sette e Mezzo a 7,5.
+    const limit = state.type === 'SETTE_E_MEZZO' ? 7.5 : 21;
+    if (kind === 'HIT' && Number(state.handTotal) >= limit) return;
 
     if (kind === 'STAND') this.blackjackStand.set(true);
     this.ws.broadcastStatus(this.gameId(), {
@@ -2270,7 +2274,22 @@ export class RemoteComponent implements OnInit, OnDestroy {
 
   isRedCard(card: string): boolean {
     const value = String(card ?? '');
-    return value.includes('♥') || value.includes('♦');
+    return value.includes('♥') || value.includes('♦')
+      || value.includes('DENARI') || value.includes('COPPE');
+  }
+
+  /** Carte del mazzo napoletano: «7-DENARI» diventa «7 DEN». */
+  setteCardLabel(card: string): string {
+    return `${shortRank(card)} ${suitShort(card)}`;
+  }
+
+  setteOutcomeLabel(state: any): string {
+    switch (state?.result?.outcome) {
+      case 'WIN': return 'BANCO BATTUTO · PREMIO DEL BAR';
+      case 'NATURAL': return 'NATURALE · PREMIO DEL BAR';
+      case 'BUST': return 'SBALLATO';
+      default: return 'VINCE IL BANCO';
+    }
   }
 
   private applyBlackjackState(state: any): void {
@@ -2283,7 +2302,7 @@ export class RemoteComponent implements OnInit, OnDestroy {
     }
 
     this.blackjackState.set(state);
-    this.questionType.set('BLACKJACK');
+    this.questionType.set(state.type === 'SETTE_E_MEZZO' ? 'SETTE_E_MEZZO' : 'BLACKJACK');
     this.gameState.set(state.phase === GamePhase.FINALE ? PlayerStatus.WAITING : PlayerStatus.VOTING);
   }
 

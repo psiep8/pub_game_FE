@@ -707,6 +707,53 @@
       }
     </div>
     }
+    @case ('SETTE_E_MEZZO') {
+    <div class="bonus-remote bj-remote">
+      @if (blackjackState()?.phase === 'FINALE') {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🃏</div></div>
+        <p>Banco chiuso: classifica in TV.</p>
+      </div>
+      } @else if (blackjackState()?.phase === 'REVEAL') {
+      @if (blackjackState()?.currentTable === nickname()) {
+      <div class="casino-hand">
+        <span class="casino-hand-label">LA TUA MANO</span>
+        <div class="casino-cards">
+          @for (card of blackjackState()?.cards ?? []; track $index) {
+          <span class="casino-card" [class.red]="isRedCard(card)">{{ setteCardLabel(card) }}</span>
+          }
+        </div>
+        <b class="casino-hand-total" [class.bust]="(blackjackState()?.handTotal ?? 0) > 7.5">{{ blackjackState()?.handTotal ?? 0 }}</b>
+      </div>
+      <p class="buzz-hint">{{ setteOutcomeLabel(blackjackState()) }}</p>
+      } @else {
+      <div class="status-msg">
+        <p>Mano di {{ blackjackState()?.currentTable }}: guarda la TV.</p>
+      </div>
+      }
+      } @else if (blackjackState()?.currentTable === nickname()) {
+      <div class="casino-hand">
+        <span class="casino-hand-label">LA TUA MANO</span>
+        <div class="casino-cards">
+          @for (card of blackjackState()?.cards ?? []; track $index) {
+          <span class="casino-card" [class.red]="isRedCard(card)">{{ setteCardLabel(card) }}</span>
+          }
+        </div>
+        <b class="casino-hand-total" [class.bust]="(blackjackState()?.handTotal ?? 0) > 7.5">{{ blackjackState()?.handTotal ?? 0 }}</b>
+      </div>
+      <div class="casino-bj-actions">
+        <button class="casino-hit" [disabled]="blackjackStand() || (blackjackState()?.handTotal ?? 0) >= 7.5 || !inputReady()"
+          (click)="blackjackAct('HIT')">CARTA</button>
+        <button class="casino-stand" [disabled]="blackjackStand() || !inputReady()" (click)="blackjackAct('STAND')">STAI</button>
+      </div>
+      } @else {
+      <div class="status-msg">
+        <div class="wait-orb small"><div class="wait-ring"></div><div class="wait-core">🃏</div></div>
+        <p>Al banco: <b>{{ blackjackState()?.currentTable }}</b></p>
+      </div>
+      }
+    </div>
+    }
     @case ('SPEED_RUSH') {
     <div class="speed-remote">
       @if (speedTask(); as task) {

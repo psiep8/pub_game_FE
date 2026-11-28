@@ -52,10 +52,10 @@ export const BONUS_ENTRANCE_POOL: readonly BonusEntranceEntry[] = [
     motion: 'slam',
     sound: 'applause',
   },
-  // BLACKJACK
+  // SETTE E MEZZO
   {
-    id: 'blackjack-banco',
-    type: 'BLACKJACK',
+    id: 'sette-banco',
+    type: 'SETTE_E_MEZZO',
     kicker: 'IL BANCO SI APRE',
     icon: '🃏',
     motion: 'slam',
@@ -63,8 +63,8 @@ export const BONUS_ENTRANCE_POOL: readonly BonusEntranceEntry[] = [
     variant: 1,
   },
   {
-    id: 'blackjack-carte',
-    type: 'BLACKJACK',
+    id: 'sette-carte',
+    type: 'SETTE_E_MEZZO',
     kicker: 'CARTE IN ARIA',
     icon: '🎴',
     motion: 'drop',
@@ -136,7 +136,7 @@ export const BONUS_ENTRANCE_POOL: readonly BonusEntranceEntry[] = [
 
 const TYPES: readonly BonusType[] = [
   'KARAOKE',
-  'BLACKJACK',
+  'SETTE_E_MEZZO',
   'CASINO_FIVE',
   'CAVALLO',
   'CASINO_NUMBER',

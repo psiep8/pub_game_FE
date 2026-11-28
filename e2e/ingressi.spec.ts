@@ -497,9 +497,9 @@ test.describe('N-10: Musica isolata', () => {
     );
     console.log(`N-10 MUSIC isolata long=${JSON.stringify(metrics.longRaw)} res=${JSON.stringify(metrics.resources)}`);
     expect(metrics.cls).toBe(0);
-    // N-10: chiusura sul layout shift. Il budget frame (100 ms/1 in
-    // isolamento) resta nel log e nel registro: è una misura nota, non
-    // un'asserzione che blocca la suite.
+    // N-10 resta aperto: un frame oltre 50 ms non si chiude togliendo
+    // l'asserzione. Il test deve restare rosso finché il budget non scende.
+    expect(metrics.framesOver50).toBe(0);
     await context.close();
   });
 });

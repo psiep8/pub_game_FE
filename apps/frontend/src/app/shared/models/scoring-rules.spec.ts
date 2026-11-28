@@ -88,7 +88,7 @@ describe('regole dei punteggi', () => {
     expect(BONUS_CASINO_NUMBER_POINTS).toBe(1000);
     expect(BONUS_SCORING['BONUS_CASINO_NUMBER'].note).toContain('una volta sola');
     expect(BONUS_SCORING['BONUS_CASINO_NUMBER'].note).toContain('tre le girate');
-    expect(BONUS_SCORING['BONUS_BLACKJACK'].correct).toContain('premio del bar');
+    expect(BONUS_SCORING['BONUS_SETTE_E_MEZZO'].correct).toContain('premio del bar');
     expect(BONUS_SCORING['BONUS_CAVALLO'].correct).toContain('premio del bar');
     for (const rule of Object.values(BONUS_SCORING)) {
       expect(rule.wrong.startsWith('0')).toBe(true);
@@ -97,6 +97,6 @@ describe('regole dei punteggi', () => {
 
   it('il Blackjack non ha più una voce nei punteggi di gioco', () => {
     expect('BLACKJACK' in SCORING_RULES).toBe(false);
-    expect(scoringRuleFor('BONUS_BLACKJACK')?.correct).toContain('premio del bar');
+    expect(scoringRuleFor('BONUS_SETTE_E_MEZZO')?.correct).toContain('premio del bar');
   });
 });

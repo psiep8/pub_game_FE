@@ -189,11 +189,11 @@ export const BONUS_SCORING: Record<string, ScoringRule> = {
     missed: '0: chi non sceglie resta a zero',
     note: `Cinque manche, una girata per manche: colore (${BONUS_CASINO_FIVE_POINTS[0]}), dozzina (${BONUS_CASINO_FIVE_POINTS[1]}), parità (${BONUS_CASINO_FIVE_POINTS[2]}), alto/basso (${BONUS_CASINO_FIVE_POINTS[3]}), numero secco (${BONUS_CASINO_FIVE_POINTS[4]}). Sullo zero il banco incassa.`,
   },
-  BONUS_BLACKJACK: {
+  BONUS_SETTE_E_MEZZO: {
     correct: 'premio del bar a chi batte il banco, nessun punto',
     wrong: '0: la sconfitta non toglie nulla',
-    missed: '0; il pari non vale',
-    note: 'Una sola manche, un turno per squadra: il premio lo consegnano barista e presentatore; l’app non assegna punti.',
+    missed: '0; il pareggio è del banco',
+    note: 'Una sola mano, un turno per squadra: il banco pesca fino a 7,25 e vince i pareggi. Il premio lo consegnano barista e presentatore; l’app non assegna punti.',
   },
   BONUS_CASINO_PARITY: {
     correct: `+${BONUS_CASINO_PARITY_POINTS} sulla parità giusta`,

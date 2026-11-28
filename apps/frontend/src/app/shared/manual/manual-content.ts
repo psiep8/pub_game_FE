@@ -265,18 +265,18 @@ const BONUS_COPY: Record<BonusType, EntryCopy> = {
     ],
     tip: `Punti: ${BONUS_KARAOKE_MANCHE_POINTS.map((value) => `+${value}`).join(' / ')}. Massimo +${BONUS_KARAOKE_MANCHE_POINTS.reduce((a, b) => a + b, 0)}. La clip è di ${BONUS_KARAOKE_SECONDS} secondi.`,
   },
-  BLACKJACK: {
-    name: 'BLACKJACK',
+  SETTE_E_MEZZO: {
+    name: 'SETTE E MEZZO',
     icon: '🃏',
-    summary: 'Un turno per tavolo contro il banco della TV: carta o stai.',
-    objective: 'Battere il banco senza sballare; il banco si ferma a 17 e il naturale batte tutto.',
+    summary: 'Un turno per tavolo contro il banco della TV: carta o stai, il più vicino a 7,5 vince.',
+    objective: 'Fermarsi il più vicino possibile a 7,5 senza sballare. Il banco pesca fino a 7,25 e vince i pareggi; il naturale (7 + figura) batte tutto salvo il naturale del banco.',
     phone: [
       'Quando la TV chiama il tuo tavolo scegli CARTA o STAI.',
+      'Il Re di denari è la matta: vale 1 o 0,5 nel modo migliore, senza sballare.',
       'La TV apre il banco alla fine della mano.',
-      'Chi batte il banco riceve il premio concordato con il bar, non punti.',
-      'Pari e sconfitte non tolgono nulla.',
+      'Chi batte il banco riceve il premio concordato con il bar, non punti. Sconfitte e pareggi non tolgono nulla.',
     ],
-    tip: 'Con 17 o più conviene spesso stare. Il premio lo consegnano barista e presentatore.',
+    tip: 'Con 6 o più conviene spesso stare: il banco pesca sul 7. Il premio lo consegnano barista e presentatore.',
   },
   CASINO_FIVE: {
     name: 'CASINO 5 MANCHE',
