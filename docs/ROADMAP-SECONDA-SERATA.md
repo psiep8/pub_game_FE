@@ -687,12 +687,21 @@ scarica o in CI. Non si dichiara chiuso un criterio che non è stato misurato.
 caricamento delle clip `atto-*.m4a`/`gioco-*.m4a` avvengono prima che la scena
 sia visibile; i long task da payload/rete non sono frame dell'ingresso.
 
-**Isolamento (round finto, senza audio né payload).** `N-10 MUSIC isolata`, due
-misure: `cls=0 long=0 frame=67ms/2` e `cls=0 long=1 max=168ms frame=167ms/2`
-(long task a t=61 ms, il primo render). La scena da sola non ha rete; restano
-**due frame sopra 50 ms** e il primo render è un long task: il budget non è
-chiuso nemmeno in isolamento, ma il costo è della scena (render iniziale), non
-del payload.
+**Isolamento (round finto, senza audio né payload).** `N-10 MUSIC isolata`, tre
+misure: `cls=0 long=0 frame=67ms/2`, `cls=0 long=1 max=168ms frame=167ms/2`
+(long task a t=61 ms, il primo render) e, dopo `contain: layout paint` sulla
+scena, `cls=0 long=0 frame=100ms/1`. La scena da sola non ha rete; resta **un
+frame sopra 50 ms** e il primo render è il costo: il budget non è chiuso
+nemmeno in isolamento, ma non viene dal payload. Senza ledger, striscia fasi e
+riquadro audio la scena sta in **50 ms/0**: il costo è tutto in quelle tre
+parti.
+
+**Tentativo di split.** `content-visibility` a stadi su ledger/fasi/audio con
+misura intrinseca a 720p: `cls=0,004` (uno shift) e `frame=233ms/7`, quindi
+peggio del render unico. Tolto: le parti non critiche non si possono rimandare
+senza una misura riservata esatta, e il loro layout costa comunque. Resta
+`contain: layout paint` sul contenitore, che ha portato l'isolamento da 117 a
+100 ms.
 
 **Flusso reale, stesso host.** `N-10 MUSIC`: `cls=0 shift=0 long=5 max=367ms
 frame=433ms/27`; `generate-ai-round` 218 ms, scena montata a ~6,3 s. L'host non
@@ -703,6 +712,10 @@ frame in più rispetto all'isolamento arrivano dal payload/audio reali
 repaint continuo. **Budget aperto:** per chiuderlo resta da togliere il costo
 della copertina sfocata (pre-blur fuori dal paint) e dell'audio al primo
 mount.
+
+**Rimisura reale dopo `contain`.** Invalida: `generate-ai-round` 29,5 s, long
+task 6941 ms a 66 s, heartbeat da 2,5 s. È il host/backend che si ferma, non la
+scena; l'ultima misura valida resta 433 ms/27.
 
 ### N-11 riepilogo di fine round condiviso — **Fatto (misurato a 1280×720)**
 

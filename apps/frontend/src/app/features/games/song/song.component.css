@@ -20,6 +20,8 @@
   padding: min(2vh, 20px) min(3vw, 30px);
   position: relative;
   overflow: hidden;
+  /* N-10: isola layout e paint della scena dal resto della TV. */
+  contain: layout paint;
 }
 
 .song-header {

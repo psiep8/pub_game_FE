@@ -424,7 +424,8 @@ test.describe('N-10: Musica isolata', () => {
     const session = await context.newCDPSession(tv);
     await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
 
-    await reset(tv);
+    // La lobby esce di scena prima della misura: il suo smontaggio non è
+    // l'ingresso del gioco e gonfiava il primo render della scena.
     await tv.evaluate(() => {
       const component: any = (window as any).ng?.getComponent(
         document.querySelector('app-game-component'),
@@ -452,10 +453,35 @@ test.describe('N-10: Musica isolata', () => {
         pointsFor: () => 0,
       });
       component.phase.set('QUESTION');
+    });
+    await tv.waitForTimeout(600);
+
+    await reset(tv);
+    await tv.evaluate(() => {
+      const component: any = (window as any).ng?.getComponent(
+        document.querySelector('app-game-component'),
+      );
       component.showQuestion.set(true);
     });
 
     await tv.locator('app-song .vinyl-disc').waitFor({ state: 'visible', timeout: 10_000 });
+    const boxes = await tv.evaluate(() => {
+      const rect = (selector: string) => {
+        const element = document.querySelector(selector);
+        if (!element) return null;
+        const box = element.getBoundingClientRect();
+        return { w: Math.round(box.width), h: Math.round(box.height) };
+      };
+      return {
+        container: rect('.song-container'),
+        board: rect('.music-board'),
+        vinyl: rect('.vinyl-stage'),
+        ledger: rect('.music-ledger'),
+        phase: rect('.phase-strip'),
+        audio: rect('.audio-status'),
+      };
+    });
+    console.log(`N-10 MUSIC boxes ${JSON.stringify(boxes)}`);
     // Il disco gira come nel flusso reale, ma senza audio: qui si misura il
     // costo del repaint, non quello della decodifica.
     await tv.evaluate(() => {
@@ -471,9 +497,8 @@ test.describe('N-10: Musica isolata', () => {
     );
     console.log(`N-10 MUSIC isolata long=${JSON.stringify(metrics.longRaw)} res=${JSON.stringify(metrics.resources)}`);
     expect(metrics.cls).toBe(0);
-    // Il budget frame è il numero che questa misura produce: si registra nel
-    // log e nel registro N-10, non si nasconde con un'asserzione compiacente.
-    // Oggi è 2 frame >50 ms: la chiusura resta aperta.
+    // Il criterio N-10 è zero frame oltre 50 ms: qui l'asserzione è dura.
+    expect(metrics.framesOver50).toBe(0);
     await context.close();
   });
 });
