@@ -133,22 +133,45 @@ async function freezeRevealTimers(page: Page): Promise<void> {
   });
 }
 
+async function installPreannounceRecorder(page: Page): Promise<void> {
+  // Il timbro dura 1,6 s: campionarlo con waitForFunction può perdere la
+  // finestra mentre il test elabora lo scatto precedente. Un observer misura
+  // ogni scena appena entra nel DOM e la conserva per le asserzioni.
+  await page.evaluate(() => {
+    const seen: Array<{ text: string; snapshot: unknown }> = [];
+    (window as any).__filmSeen = seen;
+    const recorded = new Set<string>();
+    const observer = new MutationObserver(() => {
+      const pre = document.querySelector('app-leaderboard-detailed .film-preannounce') as HTMLElement | null;
+      if (!pre) return;
+      const text = (pre.textContent ?? '').replace(/\s+/g, ' ').trim();
+      if (!text.includes('TRA POCO') || recorded.has(text)) return;
+      const box = pre.getBoundingClientRect();
+      if (box.width <= 0 || box.height <= 0) return;
+      const measure = (window as any).__filmMeasure;
+      if (typeof measure !== 'function') return;
+      recorded.add(text);
+      seen.push({ text, snapshot: measure() });
+    });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  });
+}
+
 async function snapshotAt(
   page: Page,
   position: number | null,
   withPreannounce = true,
-  naturalTitle?: string,
   prePosition?: number,
 ): Promise<LayoutSnapshot> {
-  const snapshot = await page.evaluate(({ wanted, showPre, expectedTitle, preWanted }) => {
+  const snapshot = await page.evaluate(({ wanted, showPre, preWanted }) => {
     const FILM = 'app-leaderboard-detailed';
     const ng = (window as any).ng;
     const host = document.querySelector('app-game-component');
     const component: any = ng.getComponent(host);
-    const filmElement = document.querySelector('app-leaderboard-detailed');
-    const film: any = ng.getComponent(filmElement);
 
     if (wanted !== null) {
+      const filmElement = document.querySelector('app-leaderboard-detailed');
+      const film: any = ng.getComponent(filmElement);
       const target = component.leaderboardService
         .getLeaderboard()
         .find((player: any) => Number(player.position) === wanted);
@@ -242,32 +265,17 @@ async function snapshotAt(
       };
     };
 
-    // Il waitForFunction qui sotto richiama questa funzione nel fotogramma in
-    // cui il timbro è visibile, senza un secondo giro di attesa che possa
-    // perdere il timer da 1,6 s.
+    // Il recorder dei preannunci richiama questa funzione appena il timbro
+    // entra nel DOM, nello stesso fotogramma.
     (window as any).__filmMeasure = measure;
-    return expectedTitle ? null : measure();
+    return measure();
   }, {
     wanted: position,
     showPre: withPreannounce,
-    expectedTitle: naturalTitle ?? null,
     preWanted: prePosition ?? null,
   });
 
-  if (!naturalTitle) return snapshot as LayoutSnapshot;
-
-  const handle = await page.waitForFunction((title) => {
-    const pre = document.querySelector('app-leaderboard-detailed .film-preannounce');
-    if (!pre) return null;
-    const text = (pre.textContent ?? '').replace(/\s+/g, ' ').trim();
-    const box = pre.getBoundingClientRect();
-    if (text.includes('TRA POCO') && text.includes(title) && box.width > 0 && box.height > 0) {
-      return (window as any).__filmMeasure();
-    }
-    return null;
-  }, naturalTitle, { timeout: 45_000, polling: 25 });
-
-  return await handle.jsonValue() as LayoutSnapshot;
+  return snapshot as LayoutSnapshot;
 }
 
 async function hidePlatformEmoji(page: Page): Promise<void> {
@@ -342,19 +350,32 @@ for (const scenario of SCENARIOS) {
     test(`classifica da film, ${teams} squadre a ${scenario.label}: niente sovrapposizioni o clipping`, async ({ page }) => {
       await page.setViewportSize(scenario.viewport);
       await openTv(page);
+      // `snapshotAt` installa window.__filmMeasure: il recorder deve essere
+      // attivo prima che parta il reveal.
+      await snapshotAt(page, null);
+      await installPreannounceRecorder(page);
       await mountFilm(page, teams);
 
       // Il reveal reale produce tre preavvisi: prima del terzo, del secondo
-      // e del vincitore. Ognuno deve restare nella copertina.
+      // e del vincitore. Il recorder li ha misurati appena sono comparsi.
       const naturalPreannouncements = [
         { title: 'IL PODIO · 3° POSTO', label: 'naturale 3° posto' },
         { title: 'IL PODIO · 2° POSTO', label: 'naturale 2° posto' },
         { title: 'IL VINCITORE', label: 'naturale vincitore' },
       ];
+      await page.waitForFunction(
+        (expected) => ((window as any).__filmSeen?.length ?? 0) >= expected,
+        naturalPreannouncements.length,
+        { timeout: 120_000, polling: 100 },
+      );
+      const recorded = await page.evaluate(
+        () => (window as any).__filmSeen as Array<{ text: string; snapshot: LayoutSnapshot }>,
+      );
       for (const preannouncement of naturalPreannouncements) {
-        const snapshot = await snapshotAt(page, null, true, preannouncement.title);
-        expectLayout(snapshot, `${preannouncement.label}, ${teams} squadre`, true, scenario.viewport);
-        expect(snapshot.preannounceText).toContain(preannouncement.title);
+        const entry = recorded.find((item) => item.text.includes(preannouncement.title));
+        expect(entry, `${preannouncement.label}, ${teams} squadre: timbro non registrato`).toBeTruthy();
+        expect(entry!.text).toContain('TRA POCO');
+        expectLayout(entry!.snapshot, `${preannouncement.label}, ${teams} squadre`, true, scenario.viewport);
       }
 
       // Dopo i tre preannunci il reveal ha già dato il suo spettacolo. Per gli
@@ -367,7 +388,7 @@ for (const scenario of SCENARIOS) {
       if (scenario.screenshots) {
         await hidePlatformEmoji(page);
         // Timbrato mentre la quarta squadra è in scena, come nel reveal vero.
-        const timbro = await snapshotAt(page, 4, true, undefined, 3);
+        const timbro = await snapshotAt(page, 4, true, 3);
         expectLayout(timbro, 'fotogramma timbro', true, scenario.viewport);
         await expectStableScreenshot(page, scenario, teams, 'timbro');
       }
