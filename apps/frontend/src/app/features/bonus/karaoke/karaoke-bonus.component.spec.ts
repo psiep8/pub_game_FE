@@ -49,23 +49,25 @@ describe('KaraokeBonus — microfono conteso', () => {
     }).compileComponents();
   });
 
-  function mount(gameId = 1) {
+  const STEAL_RESUME = {
+    manche: 1,
+    phase: 'STEAL',
+    secondsLeft: 12,
+    stopIndex: 3,
+    stopAtMs: 9000,
+    buzzAttempt: 1,
+    micPlayer: null,
+    blocked: [],
+    scores: [],
+  };
+
+  function mount(gameId = 1, resume: any = STEAL_RESUME) {
     const fixture = TestBed.createComponent(KaraokeBonus);
     const component = fixture.componentInstance;
     fixture.componentRef.setInput('gameId', gameId);
     fixture.componentRef.setInput('players', ['Anna', 'Bruno']);
     fixture.componentRef.setInput('preview', true);
-    fixture.componentRef.setInput('resume', {
-      manche: 1,
-      phase: 'STEAL',
-      secondsLeft: 12,
-      stopIndex: 3,
-      stopAtMs: 9000,
-      buzzAttempt: 1,
-      micPlayer: null,
-      blocked: [],
-      scores: [],
-    });
+    fixture.componentRef.setInput('resume', resume);
 
     const results: Array<{ playerName: string; score: number }> = [];
     component.result.subscribe((result) => results.push(result));
@@ -129,6 +131,62 @@ describe('KaraokeBonus — microfono conteso', () => {
     component.judge('WRONG');
     expect(component.phase()).toBe('REVEAL');
     expect(component.reveal()?.heading).toContain('NESSUN TAVOLO');
+
+    fixture.destroy();
+  });
+
+  it('la scadenza della prenotazione chiude la manche senza punti e passa alla successiva', () => {
+    vi.useFakeTimers();
+    const { fixture, component } = mount(1, { ...STEAL_RESUME, secondsLeft: 1 });
+
+    vi.advanceTimersByTime(1000);
+    fixture.detectChanges();
+    expect(component.phase()).toBe('REVEAL');
+    expect(component.reveal()?.heading).toContain('TEMPO SCADUTO');
+
+    // Una sola manche nel banco: il reveal chiude il karaoke.
+    vi.advanceTimersByTime(1400);
+    fixture.detectChanges();
+    expect(component.phase()).toBe('FINALE');
+
+    fixture.destroy();
+    vi.useRealTimers();
+  });
+
+  it('la pausa ferma il conto alla rovescia e la ripresa lo riarma', () => {
+    vi.useFakeTimers();
+    const { fixture, component } = mount(1, { ...STEAL_RESUME, secondsLeft: 2 });
+
+    component.paused = true;
+    vi.advanceTimersByTime(5000);
+    fixture.detectChanges();
+    expect(component.phase()).toBe('STEAL');
+    expect(component.secondsLeft()).toBe(2);
+
+    component.paused = false;
+    vi.advanceTimersByTime(1000);
+    fixture.detectChanges();
+    expect(component.secondsLeft()).toBe(1);
+
+    vi.advanceTimersByTime(1000);
+    fixture.detectChanges();
+    expect(component.phase()).toBe('REVEAL');
+
+    fixture.destroy();
+    vi.useRealTimers();
+  });
+
+  it('la ripresa da un checkpoint di giudizio riapre il microfono', () => {
+    const { fixture, component } = mount(1, {
+      ...STEAL_RESUME,
+      phase: 'JUDGE',
+      secondsLeft: 10,
+      micPlayer: 'Anna',
+    });
+
+    expect(component.phase()).toBe('JUDGE');
+    expect(component.micPlayer()).toBe('Anna');
+    expect(component.answerLines().length).toBeGreaterThan(0);
 
     fixture.destroy();
   });
