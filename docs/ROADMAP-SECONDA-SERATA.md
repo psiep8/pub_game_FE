@@ -463,7 +463,8 @@ Playwright `e2e/classifica-film.spec.ts` monta la TV a 1280×720 con 14 e 20
 squadre, lascia scorrere il reveal fino alla comparsa reale del timbro
 «TRA POCO», poi si ferma su ultimo/terzo/primo posto. Controlla che statistiche
 e timbro restino dentro la copertina, senza sovrapposizioni e senza testo
-tagliato: 2/2. **Da fare in sala:** guardare il reveal con 14 e 20
+tagliato: 2/2. È incluso nel job CI `reproducibility` insieme agli altri banchi
+Playwright. **Da fare in sala:** guardare il reveal con 14 e 20
 squadre, non solo il fotogramma congelato del test.
 
 **Restano di N-15:** pagina statistiche in regia, colpi di scena dal 5° posto
