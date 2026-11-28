@@ -13,6 +13,9 @@ const bonusPreview = () =>
   import('./features/bonus/preview/bonus-preview.component').then((module) => module.BonusPreview);
 const audioLab = () => import('./features/audio/audio-lab.component').then((module) => module.AudioLab);
 const credits = () => import('./features/credits/credits.component').then((module) => module.Credits);
+const setteEMezzo = () =>
+  import('./features/games/sette-e-mezzo/sette-e-mezzo-game.component')
+    .then((module) => module.SetteEMezzoGameComponent);
 
 export const routes: Routes = [
   {
@@ -36,6 +39,10 @@ export const routes: Routes = [
   {
     path: 'crediti',
     loadComponent: credits
+  },
+  {
+    path: 'sette-e-mezzo',
+    loadComponent: setteEMezzo
   },
   {
     path: 'bonus-preview',
