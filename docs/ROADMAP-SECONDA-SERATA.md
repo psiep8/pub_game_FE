@@ -687,6 +687,23 @@ scarica o in CI. Non si dichiara chiuso un criterio che non è stato misurato.
 caricamento delle clip `atto-*.m4a`/`gioco-*.m4a` avvengono prima che la scena
 sia visibile; i long task da payload/rete non sono frame dell'ingresso.
 
+**Isolamento (round finto, senza audio né payload).** `N-10 MUSIC isolata`, due
+misure: `cls=0 long=0 frame=67ms/2` e `cls=0 long=1 max=168ms frame=167ms/2`
+(long task a t=61 ms, il primo render). La scena da sola non ha rete; restano
+**due frame sopra 50 ms** e il primo render è un long task: il budget non è
+chiuso nemmeno in isolamento, ma il costo è della scena (render iniziale), non
+del payload.
+
+**Flusso reale, stesso host.** `N-10 MUSIC`: `cls=0 shift=0 long=5 max=367ms
+frame=433ms/27`; `generate-ai-round` 218 ms, scena montata a ~6,3 s. L'host non
+era scarico (load average 24,6 prima della misura): il numero è un limite
+superiore, ma non ci sono gli stalli da 20 s delle misure precedenti. I 25
+frame in più rispetto all'isolamento arrivano dal payload/audio reali
+(copertina sfocata e grafo audio), non dal disco: il `will-change` ha tolto il
+repaint continuo. **Budget aperto:** per chiuderlo resta da togliere il costo
+della copertina sfocata (pre-blur fuori dal paint) e dell'audio al primo
+mount.
+
 ### N-11 riepilogo di fine round condiviso — **Fatto (misurato a 1280×720)**
 
 **Causa.** Chiuso un round, la TV passava subito al bonus, alla classifica di

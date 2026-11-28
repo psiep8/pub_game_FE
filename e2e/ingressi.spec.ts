@@ -404,6 +404,81 @@ test.describe('N-10: ingressi', () => {
 });
 
 /**
+ * N-10 Musica in isolamento: la scena si monta su un round finto, senza
+ * `generate-ai-round`, senza clip e senza copertina. Serve a separare i frame
+ * dell'ingresso dai long task di rete e dal caricamento dell'audio: se qui il
+ * budget è pulito, i frame oltre 50 ms del flusso reale vengono da payload o
+ * audio, non dalla scena.
+ */
+test.describe('N-10: Musica isolata', () => {
+  test('la scena entra senza payload né audio', async ({ browser }) => {
+    test.setTimeout(180_000);
+    const token = await bootstrapToken(browser);
+    const gameId = await createGame(token);
+    const context = await browser.newContext({ viewport: VIEWPORT });
+    const tv = await context.newPage();
+    await instrumentObservers(tv);
+    await openTv(tv, gameId);
+    await tv.waitForTimeout(1500);
+
+    const session = await context.newCDPSession(tv);
+    await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+
+    await reset(tv);
+    await tv.evaluate(() => {
+      const component: any = (window as any).ng?.getComponent(
+        document.querySelector('app-game-component'),
+      );
+      const fake = {
+        type: 'MUSIC',
+        question: 'Prova in isolamento',
+        title: 'Prova in isolamento',
+        artist: 'Nessun audio',
+        year: '2026',
+        previewUrl: '',
+        nextPreviewUrl: '',
+        albumCover: '',
+        audioPlaying: false,
+        phaseSeconds: 30,
+        options: [],
+      };
+      component.currentMode.set({
+        type: 'MUSIC',
+        requiresBubbles: false,
+        timerDuration: 30,
+        getDisplayData: () => fake,
+        isRevealed: () => false,
+        getIsReading: () => false,
+        pointsFor: () => 0,
+      });
+      component.phase.set('QUESTION');
+      component.showQuestion.set(true);
+    });
+
+    await tv.locator('app-song .vinyl-disc').waitFor({ state: 'visible', timeout: 10_000 });
+    // Il disco gira come nel flusso reale, ma senza audio: qui si misura il
+    // costo del repaint, non quello della decodifica.
+    await tv.evaluate(() => {
+      const song: any = (window as any).ng?.getComponent(document.querySelector('app-song'));
+      song?.isPlaying?.set?.(true);
+    });
+    await tv.waitForTimeout(4_000);
+
+    const metrics = await readMetrics(tv);
+    console.log(
+      `N-10 MUSIC isolata cls=${metrics.cls} shift=${metrics.shifts} long=${metrics.longtasks} `
+      + `max=${metrics.maxLongMs}ms frame=${metrics.maxFrameMs}ms/${metrics.framesOver50}`,
+    );
+    console.log(`N-10 MUSIC isolata long=${JSON.stringify(metrics.longRaw)} res=${JSON.stringify(metrics.resources)}`);
+    expect(metrics.cls).toBe(0);
+    // Il budget frame è il numero che questa misura produce: si registra nel
+    // log e nel registro N-10, non si nasconde con un'asserzione compiacente.
+    // Oggi è 2 frame >50 ms: la chiusura resta aperta.
+    await context.close();
+  });
+});
+
+/**
  * La cornice della foto riserva la sua area: l'immagine che arriva non deve
  * allargare la colonna e far saltare titolo e indizio insieme.
  */
