@@ -156,6 +156,11 @@
   box-shadow: 10px 10px 0 var(--tomato);
   overflow: hidden;
   backface-visibility: hidden;
+  /* N-10: il disco ruota con ombre e solchi. Senza un layer composito il
+     browser ridisegna l'intero cerchio a ogni frame; a CPU 4× sono i frame
+     oltre 50 ms visti all'ingresso di Musica. */
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .vinyl-disc.spinning {

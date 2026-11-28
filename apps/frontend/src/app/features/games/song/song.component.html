@@ -29,6 +29,7 @@
             <img [src]="displayData.albumCover"
                  alt="Copertina del brano"
                  class="album-cover"
+                 decoding="async"
                  [style.filter]="'blur(' + blurAmount() + 'px)'">
           } @else {
             <div class="label-content">
@@ -110,7 +111,7 @@
         }
         @if (displayData.albumCover) {
           <div class="reveal-cover">
-            <img [src]="displayData.albumCover" alt="Copertina del brano">
+            <img [src]="displayData.albumCover" alt="Copertina del brano" decoding="async">
           </div>
         }
       </div>

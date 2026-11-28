@@ -657,6 +657,36 @@ sui signal, non un mock statico).
 misurati a CPU 4×) e il componente unico `FeedbackCard` per
 esito corretto/sbagliato: oggi ogni gioco disegna la propria card.
 
+### N-10 sesta famiglia: il disco di Musica non era su un layer composito
+
+**Misura pulita (host stabile).** `N10_GAMES=MUSIC`: `cls=0 shift=0 long=6
+max=347ms frame=383ms/23`. Il criterio di N-10 ha due metà: il layout shift è
+zero (rispettata in tutte le misure), il budget dei frame **non** lo è: 23 frame
+oltre 50 ms in 6,5 s, non solo il primo paint.
+
+**Causa.** `.vinyl-disc.spinning` ruota con `box-shadow`, bordo e solchi dentro
+`overflow: hidden`; senza un layer composito il browser ridisegna il cerchio a
+ogni frame. A CPU 4× ogni ridisegno supera i 50 ms. `decoding="async"` sulle
+copertine toglie la decodifica sincrona dell'immagine, ma non il repaint del
+disco.
+
+**Correzione.** `.vinyl-disc` ha `will-change: transform` e
+`transform: translateZ(0)`: il layer si crea al primo paint, la rotazione la fa
+il compositor e ombre/solchi non si ridisegnano. Le due copertine hanno
+`decoding="async"`.
+
+**Misura dopo la correzione — non affidabile su questo host.** Le misure a 4×
+hanno prodotto stalli del host, non dell'ingresso: `generate-ai-round` da 3051 ms,
+long task da 2211 ms a 20 s, `frame=4433ms/36`, con la finestra di misura ferma a
+6,5 s. I long task da 9 a 20 s sono la macchina che si ferma (la finestra è
+6,5 s), non la scena. Il banco resta **non chiuso**: il numero pulito da battere
+è 273 ms / 16 frame (prima della correzione), da rimisurare su una macchina
+scarica o in CI. Non si dichiara chiuso un criterio che non è stato misurato.
+
+**Cosa resta fuori dall'ingresso.** `generate-ai-round` (payload del round) e il
+caricamento delle clip `atto-*.m4a`/`gioco-*.m4a` avvengono prima che la scena
+sia visibile; i long task da payload/rete non sono frame dell'ingresso.
+
 ### N-11 riepilogo di fine round condiviso — **Fatto (misurato a 1280×720)**
 
 **Causa.** Chiuso un round, la TV passava subito al bonus, alla classifica di

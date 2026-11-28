@@ -89,6 +89,16 @@ function instrumentObservers(page: Page) {
     const w = window as any;
     w.__shift = [];
     w.__long = [];
+    // Frame veri: il criterio N-10 parla di frame, non di long task. Il long
+    // task è un proxy; qui si misura il tempo fra due `requestAnimationFrame`.
+    w.__frames = [];
+    let lastFrame = performance.now();
+    const frame = (now: number) => {
+      w.__frames.push(now - lastFrame);
+      lastFrame = now;
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
     const name = (node: any): string => {
       const element = node?.nodeType === 1 ? node : node?.parentElement;
       if (!element) return '?';
@@ -109,7 +119,15 @@ function instrumentObservers(page: Page) {
     }).observe({ type: 'layout-shift', buffered: true } as any);
     new PerformanceObserver((list) => {
       for (const entry of list.getEntries() as any[]) {
-        w.__long.push({ duration: entry.duration, t: entry.startTime });
+        w.__long.push({
+          duration: entry.duration,
+          t: entry.startTime,
+          name: entry.name,
+          attribution: (entry.attribution ?? []).map((item: any) => ({
+            type: item.containerType,
+            src: item.containerSrc,
+          })),
+        });
       }
     }).observe({ type: 'longtask', buffered: true } as any);
   });
@@ -176,12 +194,36 @@ const reset = (tv: Page) => tv.evaluate(() => {
   const w = window as any;
   w.__shift.length = 0;
   w.__long.length = 0;
+  w.__frames.length = 0;
+  w.__resetAt = performance.now();
 });
 
 const readMetrics = (tv: Page) => tv.evaluate(() => {
   const w = window as any;
-  const shift = (w.__shift ?? []) as Array<{ value: number; t: number; nodes: string[] }>;
-  const long = (w.__long ?? []) as Array<{ duration: number }>;
+  // La lobby non è l'ingresso del gioco: i suoi passi e le sue righe cambiano
+  // quando entra un telefono. Il criterio N-10 misura la scena del gioco.
+  const shift = ((w.__shift ?? []) as Array<{ value: number; t: number; nodes: string[] }>)
+    .filter((entry) => !entry.nodes.length || !entry.nodes.every((node) => node.includes('lobby-')));
+  const long = (w.__long ?? []) as Array<{
+    duration: number;
+    t: number;
+    name?: string;
+    attribution?: Array<{ type?: string; src?: string }>;
+  }>;
+  const frames = ((w.__frames ?? []) as number[]).filter((ms) => ms > 0 && ms < 5_000);
+  const maxFrameMs = frames.length ? Math.round(Math.max(...frames)) : 0;
+  const framesOver50 = frames.filter((ms) => ms > 50).length;
+  // Cosa si stava caricando mentre la scena entrava: audio, copertina, font.
+  const since = Number(w.__resetAt) || 0;
+  const resources = performance.getEntriesByType('resource')
+    .filter((entry) => entry.startTime >= since && entry.duration > 10)
+    .slice(0, 15)
+    .map((entry) => ({
+      name: entry.name.split('/').pop()?.split('?')[0] ?? entry.name,
+      type: entry.initiatorType,
+      start: Math.round(entry.startTime - since),
+      duration: Math.round(entry.duration),
+    }));
   const byNode = new Map<string, { value: number; count: number }>();
   for (const entry of shift) {
     for (const node of new Set(entry.nodes)) {
@@ -196,6 +238,19 @@ const readMetrics = (tv: Page) => tv.evaluate(() => {
     shifts: shift.filter((entry) => entry.value > 0.0005).length,
     longtasks: long.length,
     maxLongMs: long.length ? Math.round(Math.max(...long.map((entry) => entry.duration))) : 0,
+    maxFrameMs,
+    framesOver50,
+    longRaw: long
+      .slice()
+      .sort((a, b) => b.duration - a.duration)
+      .slice(0, 8)
+      .map((entry) => ({
+        ms: Math.round(entry.duration),
+        at: Math.round(entry.t - since),
+        name: entry.name ?? '',
+        src: entry.attribution?.[0]?.src ?? '',
+      })),
+    resources,
     // Quando è successo: un salto solo a metà scena non è la stessa cosa di
     // trenta salti sparsi, e la correzione è diversa.
     raw: shift
@@ -238,6 +293,10 @@ interface Metrics {
   shifts: number;
   longtasks: number;
   maxLongMs: number;
+  maxFrameMs: number;
+  framesOver50: number;
+  longRaw: Array<{ ms: number; at: number; name: string; src: string }>;
+  resources: Array<{ name: string; type: string; start: number; duration: number }>;
   raw: Array<{ t: number; value: number; nodes: string[] }>;
   nodes: Array<{ node: string; value: number; count: number }>;
 }
@@ -333,8 +392,10 @@ test.describe('N-10: ingressi', () => {
       console.log(
         `N-10 ${row.game.padEnd(18)} scena=${String(row.scene).padEnd(18)} cls=${String(row.cls).padEnd(7)} `
         + `shift=${row.shifts} long=${row.longtasks} max=${row.maxLongMs}ms `
+        + `frame=${row.maxFrameMs}ms/${row.framesOver50} `
         + `nodi=${row.nodes.slice(0, 3).map((node) => `${node.node}(${node.value})`).join(' ')}`,
       );
+      console.log(`N-10 ${row.game} long=${JSON.stringify(row.longRaw)} res=${JSON.stringify(row.resources)}`);
     }
 
     const missing = rows.filter((row) => !row.scene);
@@ -407,7 +468,8 @@ test.describe('N-10: bonus Cavallo', () => {
 
     console.log(
       `N-10 CAVALLO cls=${metrics.cls} shift=${metrics.shifts} `
-      + `long=${metrics.longtasks} max=${metrics.maxLongMs}ms nodi=${JSON.stringify(metrics.nodes)}`,
+      + `long=${metrics.longtasks} max=${metrics.maxLongMs}ms `
+      + `frame=${metrics.maxFrameMs}ms/${metrics.framesOver50} nodi=${JSON.stringify(metrics.nodes)}`,
     );
     expect(metrics.cls, 'layout shift nell\'ingresso del Cavallo').toBeLessThan(0.01);
     // Il frame budget resta una misura da leggere: a 4× CPU un primo paint di
