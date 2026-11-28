@@ -2,7 +2,7 @@
  * Simulazione del Sette e Mezzo.
  *
  * <p>Serve a una cosa sola: scegliere la soglia del banco. Le squadre giocano
- * una strategia semplice e dichiarata (pescano sotto 4,5, stanno a 4,5 o più); il
+ * la strategia credibile di chi sta a 5,5 (pesca a 5 o meno); il
  * banco pesca finché è sotto la soglia. Si cerca la soglia che fa vincere le
  * squadre fra il 42% e il 45% delle mani, come chiede il foglio della serata.</p>
  *
@@ -99,7 +99,7 @@ export function settleHand(hand, bank) {
 }
 
 /** Una mano: mazzo rimescolato, due carte a testa, poi le pescate. */
-export function playHand(random, soglia, standAt = 4.5) {
+export function playHand(random, soglia, standAt = 5.5) {
   const deck = shuffle(buildDeck(), random);
   const hand = [deck.pop(), deck.pop()];
   const bank = [deck.pop(), deck.pop()];
@@ -123,7 +123,7 @@ export function playHand(random, soglia, standAt = 4.5) {
  * Frequenze su `hands` mani. `seed` rende la misura ripetibile: due giri con
  * lo stesso seme danno lo stesso numero, anche su macchine diverse.
  */
-export function simulate(soglia, hands = 200_000, seed = 2026, standAt = 4.5) {
+export function simulate(soglia, hands = 200_000, seed = 2026, standAt = 5.5) {
   const random = seededRandom(seed);
   let wins = 0;
   let naturals = 0;
@@ -153,9 +153,9 @@ export function simulate(soglia, hands = 200_000, seed = 2026, standAt = 4.5) {
  * Sceglie la soglia con la vittoria delle squadre fra 42% e 45%, la più vicina
  * al centro della forbice. Se nessuna ci cade, restituisce la più vicina.
  */
-export function chooseThreshold(hands = 200_000, standAt = 4.5) {
+export function chooseThreshold(hands = 200_000, standAt = 5.5) {
   const rows = [];
-  for (let soglia = 4; soglia <= 7.0001; soglia += 0.25) {
+  for (let soglia = 4; soglia <= 7.5001; soglia += 0.25) {
     rows.push(simulate(Number(soglia.toFixed(2)), hands, 2026, standAt));
   }
 

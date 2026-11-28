@@ -98,8 +98,9 @@ describe('Sette e Mezzo — esiti', () => {
 describe('Sette e Mezzo — banco automatico', () => {
   it('pesca sotto la soglia e sta quando la raggiunge', () => {
     expect(bankShouldDraw(5, BANCO_SOGLIA)).toBe(true);
-    expect(bankShouldDraw(6, BANCO_SOGLIA)).toBe(true);
-    expect(bankShouldDraw(6.25, BANCO_SOGLIA)).toBe(false);
+    expect(bankShouldDraw(7, BANCO_SOGLIA)).toBe(true);
+    expect(bankShouldDraw(7.25, BANCO_SOGLIA)).toBe(false);
+    expect(bankShouldDraw(7.5, BANCO_SOGLIA)).toBe(false);
     expect(bankShouldDraw(8, BANCO_SOGLIA)).toBe(false);
   });
 });

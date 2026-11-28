@@ -37,10 +37,11 @@ export const SETTE_E_MEZZO_LOSS = 250;
 /**
  * Soglia del banco: pesca finché il totale è sotto questo valore.
  *
- * <p>Il valore è quello che, nella simulazione `scripts/sim/sette-mezzo.mjs`,
- * porta la vittoria delle squadre fra il 42% e il 45%.</p>
+ * <p>Il valore è quello che, nella simulazione `scripts/sim/sette-mezzo.mjs`
+ * con la strategia credibile «sta a 5,5», porta la vittoria delle squadre fra
+ * il 42% e il 45%. A 7,25 il banco pesca sul 7 e sta sul 7,5.</p>
  */
-export const BANCO_SOGLIA = 6.25;
+export const BANCO_SOGLIA = 7.25;
 
 const FIGURES = new Set(['FANTE', 'CAVALLO', 'RE']);
 
